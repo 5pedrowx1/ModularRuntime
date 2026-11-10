@@ -1,0 +1,70 @@
+# Continuous integration of the public ModularRuntime repository: restore, build, and test in
+# Debug and Release. Nothing else.
+#
+# Security:
+# - Read-only token (contents: read), no secrets, no environments, no write permission of any kind.
+# - pull_request only (never pull_request_target): pull requests from forks run with a read-only
+#   token and without secrets, by GitHub's design.
+# - No signing, no packing for publication, no NuGet push, no release, no deployment.
+# - Only this repository is checked out; it builds on its own (no private repository is needed or
+#   reachable: no credentials are configured and checkout credentials are not persisted).
+# - Third-party actions are pinned by full commit SHA, each verified on the action's official
+#   repository (the tag comment is informational; Dependabot proposes updates as pull requests).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
+  NUGET_XMLDOC_MODE: skip
+
+jobs:
+  build-and-test:
+    name: Build and test (${{ matrix.configuration }})
+    # Windows: the desktop app (WPF) and the CLI target net10.0-windows.
+    runs-on: windows-2025
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
+    steps:
+      - name: Check out (no credentials kept)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install the .NET SDK from global.json
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          global-json-file: global.json
+
+      - name: .NET information
+        run: dotnet --info
+
+      - name: Restore
+        run: dotnet restore ModularRuntime.sln
+
+      - name: Build (warnings are errors)
+        run: dotnet build ModularRuntime.sln -c ${{ matrix.configuration }} --no-restore
+
+      - name: Test
+        run: >-
+          dotnet test ModularRuntime.sln -c ${{ matrix.configuration }} --no-build
+          --logger "trx;LogFilePrefix=${{ matrix.configuration }}"
+          --results-directory "${{ runner.temp }}/TestResults"
+          --blame-hang-timeout 10m

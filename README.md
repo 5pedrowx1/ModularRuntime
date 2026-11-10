@@ -299,6 +299,11 @@ Warnings are treated as errors. Test projects stage plugin assets into their
 output directory during the build and copy them into isolated temporary
 directories at test time.
 
+The same restore, build, and test run in GitHub Actions on Windows for both
+configurations ([.github/workflows/ci.yml](.github/workflows/ci.yml)), with a
+read-only token, no secrets, and actions pinned by commit SHA. CI never signs,
+packs for publication, or publishes anything.
+
 `ModularRuntime.Daemon.Tests` starts the real executables from
 `artifacts/app/<Configuration>/`, each test with its own temporary profile
 (unique pipe and lock); it never touches the default profile. Three of those

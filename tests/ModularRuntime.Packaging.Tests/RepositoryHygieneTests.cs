@@ -150,6 +150,45 @@ public sealed partial class RepositoryHygieneTests
         Assert.Contains("!src/**/OfficialTrustStore.json", ignore, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// GitHub workflows of this public repository only build and test: a read-only token, no secrets,
+    /// no pull_request_target, no OIDC token, no package push or release, no other repository, and
+    /// every action pinned by a full commit SHA.
+    /// </summary>
+    [Fact]
+    public void Workflows_AreReadOnly_UseNoSecrets_AndPinActionsBySha()
+    {
+        var directory = Path.Combine(RepositoryLayout.Root, ".github", "workflows");
+        var workflows = Directory.Exists(directory)
+            ? Directory.EnumerateFiles(directory).Where(f => f.EndsWith(".yml", StringComparison.Ordinal) || f.EndsWith(".yaml", StringComparison.Ordinal)).ToList()
+            : [];
+        foreach (var workflow in workflows)
+        {
+            var name = Path.GetFileName(workflow);
+            // Comments explain the rules; only the YAML itself is checked.
+            var yaml = string.Join('\n', File.ReadAllLines(workflow).Select(l => l.TrimStart().StartsWith('#') ? string.Empty : l));
+
+            Assert.Matches(new Regex(@"^permissions:\s*\n\s+contents:\s*read\s*$", RegexOptions.Multiline), yaml);
+            Assert.DoesNotMatch(new Regex(@":\s*write\b|write-all|id-token", RegexOptions.IgnoreCase), yaml);
+            foreach (var forbidden in new[] { "pull_request_target", "secrets.", "nuget push", "--api-key", "gh release" })
+            {
+                Assert.False(yaml.Contains(forbidden, StringComparison.OrdinalIgnoreCase), $"{name} contains '{forbidden}'.");
+            }
+
+            // Only this repository is checked out, with the default read-only token: no other repository, no explicit token.
+            Assert.DoesNotMatch(new Regex(@"^\s*(repository|token|ssh-key):", RegexOptions.Multiline), yaml);
+
+            foreach (Match uses in new Regex(@"^\s*(?:-\s*)?uses:\s*(\S+)", RegexOptions.Multiline).Matches(yaml))
+            {
+                var reference = uses.Groups[1].Value;
+                Assert.True(reference.StartsWith("./", StringComparison.Ordinal) || Regex.IsMatch(reference, "^[A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+@[0-9a-f]{40}$"),
+                    $"{name}: '{reference}' is not pinned by a full commit SHA.");
+            }
+
+            Assert.Contains("persist-credentials: false", yaml, StringComparison.Ordinal);
+        }
+    }
+
     [GeneratedRegex(@"-----BEGIN [A-Z ]*PRIVATE KEY-----\r?\n[A-Za-z0-9+/=]{16,}")]
     private static partial Regex PrivateKeyPattern();
 
