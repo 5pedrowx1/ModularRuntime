@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Template package for "dotnet new" (and Visual Studio's New Project dialog):
+      dotnet new install ModularRuntime.Templates
+      dotnet new modularruntime-plugin -n MyFirstPlugin
+    The template sources under templates\ are content, never compiled here. At pack time the
+    @@MODULARRUNTIME_VERSION@@ and @@PLUGIN_API@@ tokens are replaced with this build's product
+    and plugin API versions (Directory.Build.props), so the generated project references the
+    matching ModularRuntime.Sdk package.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageType>Template</PackageType>
+    <PackageId>ModularRuntime.Templates</PackageId>
+    <Title>ModularRuntime plugin templates</Title>
+    <Description>dotnet new templates for ModularRuntime plugins: modularruntime-plugin (--kind basic, event-publisher, event-subscriber, service-provider, service-consumer, extension).</Description>
+    <PackageTags>modularruntime;plugins;templates;dotnet-new</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSymbols>false</IncludeSymbols>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- No assembly content: NU5128 (no lib folder for the TFM) does not apply to a template package. -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <GeneratedTemplatesDirectory>$(MSBuildProjectDirectory)\$(BaseIntermediateOutputPath)generated-templates\</GeneratedTemplatesDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <TemplateSource Include="templates\**\*" Exclude="templates\**\bin\**;templates\**\obj\**" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!-- Copies the templates with the version tokens replaced; runs on build and before packing. -->
+  <Target Name="GenerateTemplates" BeforeTargets="Build;_GetPackageFiles">
+    <PropertyGroup>
+      <_TemplateVersion>$(VersionPrefix)</_TemplateVersion>
+      <_TemplateVersion Condition="'$(VersionSuffix)' != ''">$(VersionPrefix)-$(VersionSuffix)</_TemplateVersion>
+    </PropertyGroup>
+    <RemoveDir Directories="$(GeneratedTemplatesDirectory)" />
+    <Copy SourceFiles="@(TemplateSource)" DestinationFiles="@(TemplateSource->'$(GeneratedTemplatesDirectory)%(RecursiveDir)%(Filename)%(Extension)')" />
+    <ItemGroup>
+      <_TokenFile Include="$(GeneratedTemplatesDirectory)**\template.json;$(GeneratedTemplatesDirectory)**\plugin.json;$(GeneratedTemplatesDirectory)**\README.md" />
+    </ItemGroup>
+    <WriteLinesToFile File="%(_TokenFile.FullPath)"
+                      Lines="$([MSBuild]::Escape($([System.IO.File]::ReadAllText('%(_TokenFile.FullPath)').Replace('@@MODULARRUNTIME_VERSION@@', '$(_TemplateVersion)').Replace('@@PLUGIN_API@@', '$(ModularRuntimePluginApiVersion)').TrimEnd())))"
+                      Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Content Include="$(GeneratedTemplatesDirectory)**\*" Pack="true" PackagePath="content\%(RecursiveDir)%(Filename)%(Extension)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

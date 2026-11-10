@@ -1,0 +1,96 @@
+<Window x:Class="ModularRuntime.Desktop.Views.PackagePreviewDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="Install from ZIP"
+        Width="520" SizeToContent="Height" ResizeMode="NoResize" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource CardBrush}"
+        Foreground="{DynamicResource TextPrimaryBrush}"
+        FontFamily="{StaticResource UiFont}"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True">
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="44" ResizeBorderThickness="0" GlassFrameThickness="0,0,0,1"
+                            CornerRadius="0" UseAeroCaptionButtons="False" />
+    </shell:WindowChrome.WindowChrome>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Margin="24,22,24,18">
+            <TextBlock Text="Install from ZIP" Style="{StaticResource SubtitleText}" />
+            <TextBlock Text="The daemon copied the package to its staging area and verified it. Nothing has been installed or run yet."
+                       Style="{StaticResource SecondaryText}" TextWrapping="Wrap" TextTrimming="None" Margin="0,4,0,14" />
+
+            <!-- Rejected package -->
+            <Border x:Name="RejectedPanel" Background="{DynamicResource ErrorSubtleBrush}" CornerRadius="8" Padding="12" Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock Text="The package was rejected" FontWeight="SemiBold" Foreground="{DynamicResource ErrorBrush}" />
+                    <TextBlock x:Name="RejectedText" Style="{StaticResource BodyText}" TextWrapping="Wrap" TextTrimming="None" Margin="0,4,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- Package details -->
+            <Grid x:Name="DetailsPanel">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="110" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition />
+                </Grid.RowDefinitions>
+                <TextBlock Text="Name" Style="{StaticResource CaptionText}" Margin="0,3" />
+                <TextBlock x:Name="NameText" Grid.Column="1" Style="{StaticResource BodyText}" FontWeight="SemiBold" Margin="0,3" />
+                <TextBlock Grid.Row="1" Text="ID" Style="{StaticResource CaptionText}" Margin="0,3" />
+                <TextBlock x:Name="IdText" Grid.Row="1" Grid.Column="1" Style="{StaticResource BodyText}" Margin="0,3" />
+                <TextBlock Grid.Row="2" Text="Version" Style="{StaticResource CaptionText}" Margin="0,3" />
+                <TextBlock x:Name="VersionText" Grid.Row="2" Grid.Column="1" Style="{StaticResource BodyText}" Margin="0,3" />
+                <TextBlock Grid.Row="3" Text="Author" Style="{StaticResource CaptionText}" Margin="0,3" />
+                <TextBlock x:Name="AuthorText" Grid.Row="3" Grid.Column="1" Style="{StaticResource BodyText}" Margin="0,3" />
+                <TextBlock Grid.Row="4" Text="Origin" Style="{StaticResource CaptionText}" Margin="0,3" />
+                <TextBlock x:Name="OriginText" Grid.Row="4" Grid.Column="1" Style="{StaticResource BodyText}" Margin="0,3" TextWrapping="Wrap" />
+                <TextBlock Grid.Row="5" Text="Signature" Style="{StaticResource CaptionText}" Margin="0,3" />
+                <TextBlock x:Name="SignatureText" Grid.Row="5" Grid.Column="1" Style="{StaticResource BodyText}" Margin="0,3" TextWrapping="Wrap" />
+                <TextBlock Grid.Row="6" Text="Integrity" Style="{StaticResource CaptionText}" Margin="0,3" />
+                <TextBlock x:Name="IntegrityText" Grid.Row="6" Grid.Column="1" Style="{StaticResource BodyText}" Margin="0,3" TextWrapping="Wrap" />
+                <TextBlock Grid.Row="7" Text="Compatibility" Style="{StaticResource CaptionText}" Margin="0,3" />
+                <TextBlock x:Name="CompatibilityText" Grid.Row="7" Grid.Column="1" Style="{StaticResource BodyText}" Margin="0,3" TextWrapping="Wrap" />
+            </Grid>
+
+            <!-- Unverified origin warning -->
+            <Border x:Name="WarningPanel" Background="{DynamicResource WarningSubtleBrush}" CornerRadius="8" Padding="12" Margin="0,14,0,0" Visibility="Collapsed">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE7BA;" Style="{StaticResource IconText}" Foreground="{DynamicResource WarningBrush}" Margin="0,0,8,0" />
+                        <TextBlock Text="Not signed by ModularRuntime" FontWeight="SemiBold" Foreground="{DynamicResource WarningBrush}" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BodyText}" TextWrapping="Wrap" TextTrimming="None" Margin="0,6,0,0"
+                               Text="Its origin cannot be verified. Hashes inside a package only show that it is internally consistent, not who made it or that it was reviewed. Plugins run inside the daemon with your Windows permissions; installing one you do not trust can harm your computer or data." />
+                    <CheckBox x:Name="AcceptCheck" Margin="0,10,0,0" Checked="OnOptionChanged" Unchecked="OnOptionChanged"
+                              AutomationProperties.Name="I understand the risk">
+                        <TextBlock Text="I understand the origin is not verified. Install it without starting it." Style="{StaticResource BodyText}" TextWrapping="Wrap" />
+                    </CheckBox>
+                </StackPanel>
+            </Border>
+
+            <!-- Replaces a running version -->
+            <CheckBox x:Name="StopCheck" Margin="0,12,0,0" Visibility="Collapsed" Checked="OnOptionChanged" Unchecked="OnOptionChanged"
+                      AutomationProperties.Name="Stop the running version">
+                <TextBlock x:Name="StopText" Style="{StaticResource BodyText}" TextWrapping="Wrap" />
+            </CheckBox>
+        </StackPanel>
+
+        <Border Grid.Row="1" Background="{DynamicResource WindowBackgroundBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
+                BorderThickness="0,1,0,0" Padding="24,14">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="CancelButton" Content="Cancel" MinWidth="96" IsCancel="True" Click="OnCancel" AutomationProperties.Name="Cancel" />
+                <Button x:Name="InstallButton" Content="Install" MinWidth="96" Margin="8,0,0,0" Style="{StaticResource AccentButton}"
+                        Click="OnInstall" AutomationProperties.Name="Install" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

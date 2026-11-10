@@ -1,0 +1,13 @@
+# Let Git normalize text files; keep binaries untouched.
+* text=auto
+
+*.sh   text eol=lf
+*.yml  text eol=lf
+
+*.png    binary
+*.ico    binary
+*.zip    binary
+*.nupkg  binary
+*.dll    binary
+*.exe    binary
+*.pdb    binary

@@ -1,0 +1,9 @@
+{
+  "id": "com.example.events.subscriber",
+  "name": "Event Subscriber Plugin",
+  "version": "1.0.0",
+  "apiVersion": "0.3",
+  "entryAssembly": "EventSubscriberPlugin.dll",
+  "entryType": "EventSubscriberPlugin.EventSubscriberPlugin",
+  "startOrder": 10
+}

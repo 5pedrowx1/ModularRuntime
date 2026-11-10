@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ModularRuntime.Loader\ModularRuntime.Loader.csproj" />
+    <ProjectReference Include="..\..\src\ModularRuntime.Engine\ModularRuntime.Engine.csproj" />
+    <ProjectReference Include="..\..\src\ModularRuntime.Contracts\ModularRuntime.Contracts.csproj" />
+    <ProjectReference Include="..\ModularRuntime.TestSupport\ModularRuntime.TestSupport.csproj" />
+    <ProjectReference Include="..\..\samples\HelloPlugin\HelloPlugin.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\fixtures\ModularRuntime.TestPlugin\ModularRuntime.TestPlugin.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\fixtures\ModularRuntime.NotAPlugin\ModularRuntime.NotAPlugin.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <Target Name="CopyPluginTestAssets" AfterTargets="Build">
+    <ItemGroup>
+      <HelloPluginAssets Include="$(MSBuildThisFileDirectory)..\..\samples\HelloPlugin\bin\$(Configuration)\net10.0\**\*" />
+      <TestPluginAssets Include="$(MSBuildThisFileDirectory)..\fixtures\ModularRuntime.TestPlugin\bin\$(Configuration)\net10.0\**\*" />
+      <NotAPluginAssets Include="$(MSBuildThisFileDirectory)..\fixtures\ModularRuntime.NotAPlugin\bin\$(Configuration)\net10.0\**\*" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(HelloPluginAssets)"
+          DestinationFiles="@(HelloPluginAssets->'$(OutDir)test-plugins\HelloPlugin\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(TestPluginAssets)"
+          DestinationFiles="@(TestPluginAssets->'$(OutDir)test-plugins\ModularRuntime.TestPlugin\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(NotAPluginAssets)"
+          DestinationFiles="@(NotAPluginAssets->'$(OutDir)test-plugins\ModularRuntime.NotAPlugin\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

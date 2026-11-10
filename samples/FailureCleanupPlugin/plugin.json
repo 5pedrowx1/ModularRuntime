@@ -1,0 +1,9 @@
+{
+  "id": "com.example.failure-cleanup",
+  "name": "Failure Cleanup Plugin",
+  "version": "1.0.0",
+  "apiVersion": "0.3",
+  "entryAssembly": "FailureCleanupPlugin.dll",
+  "entryType": "FailureCleanupPlugin.FailureCleanupPlugin",
+  "startOrder": 40
+}

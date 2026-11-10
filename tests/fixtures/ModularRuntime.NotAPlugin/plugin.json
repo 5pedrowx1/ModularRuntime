@@ -1,0 +1,8 @@
+{
+  "id": "com.test.not-a-plugin",
+  "name": "Not A Plugin Fixture",
+  "version": "1.0.0",
+  "apiVersion": "0.3",
+  "entryAssembly": "ModularRuntime.NotAPlugin.dll",
+  "entryType": "ModularRuntime.NotAPlugin.NotAPlugin"
+}

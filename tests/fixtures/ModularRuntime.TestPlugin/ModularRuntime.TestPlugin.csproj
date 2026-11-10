@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\ModularRuntime.Contracts\ModularRuntime.Contracts.csproj" />
+    <ProjectReference Include="..\ModularRuntime.TestPlugin.Dependency\ModularRuntime.TestPlugin.Dependency.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="plugin.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

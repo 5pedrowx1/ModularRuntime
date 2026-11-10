@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- WinExe: no console window when started normally (logs go to files and IPC). -->
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- Required by the source-generated P/Invoke that attaches to a parent console for help output. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Daemon, CLI, and Desktop share one output folder so they find each other in dev builds. -->
+    <OutDir Condition="'$(RuntimeIdentifier)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\app\$(Configuration)\</OutDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ModularRuntime.Loader\ModularRuntime.Loader.csproj" />
+    <ProjectReference Include="..\ModularRuntime.Contracts\ModularRuntime.Contracts.csproj" />
+    <ProjectReference Include="..\ModularRuntime.Ipc\ModularRuntime.Ipc.csproj" />
+    <ProjectReference Include="..\ModularRuntime.Packaging\ModularRuntime.Packaging.csproj" />
+    <ProjectReference Include="..\ModularRuntime.Registry\ModularRuntime.Registry.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ModularRuntime.Daemon.Tests" />
+  </ItemGroup>
+
+</Project>

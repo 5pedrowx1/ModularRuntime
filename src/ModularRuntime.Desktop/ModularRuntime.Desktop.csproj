@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- LibraryImport (DWM window attributes) generates unsafe marshalling code. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <OutDir Condition="'$(RuntimeIdentifier)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\app\$(Configuration)\</OutDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The desktop app is an IPC client only: no reference to the engine, loader, or plugin contracts. -->
+    <ProjectReference Include="..\ModularRuntime.Ipc\ModularRuntime.Ipc.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ModularRuntime.Desktop.Tests" />
+  </ItemGroup>
+
+</Project>

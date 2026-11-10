@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\ModularRuntime.Contracts\ModularRuntime.Contracts.csproj" />
+    <ProjectReference Include="..\ModularRuntime.Engine\ModularRuntime.Engine.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageId>ModularRuntime.Loader</PackageId>
+    <Description>ModularRuntime loader and PluginRuntime for embedding: discovers plugin installations (plugin.json), loads each run in a collectible AssemblyLoadContext, and manages start, stop, restart, and unload.</Description>
+    <PackageTags>modularruntime;plugins</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

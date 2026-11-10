@@ -1,0 +1,8 @@
+{
+  "id": "com.test.private-dependency",
+  "name": "Private Dependency Test Plugin",
+  "version": "1.0.0",
+  "apiVersion": "0.3",
+  "entryAssembly": "ModularRuntime.TestPlugin.dll",
+  "entryType": "ModularRuntime.TestPlugin.TestPlugin"
+}

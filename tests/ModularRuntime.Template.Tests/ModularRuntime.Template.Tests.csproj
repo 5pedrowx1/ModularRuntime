@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    End-to-end tests of the distributed SDK, outside the repository: the public packages are packed
+    into a temporary local feed, the template and the tool are installed from it (isolated template
+    hive, tool path, and NuGet cache), and generated plugins are built, validated, packed, installed
+    in a real daemon, and embedded in a generated host application. Generated projects only use the
+    packages, never project references into this repository.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Built before the tests (they are packed with no build, and the daemon/CLI run from artifacts\app). -->
+    <ProjectReference Include="..\..\src\ModularRuntime.Contracts\ModularRuntime.Contracts.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\ModularRuntime.Sdk\ModularRuntime.Sdk.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\ModularRuntime.Engine\ModularRuntime.Engine.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\ModularRuntime.Loader\ModularRuntime.Loader.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\ModularRuntime.Templates\ModularRuntime.Templates.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\ModularRuntime.DevTools\ModularRuntime.DevTools.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\ModularRuntime.Daemon\ModularRuntime.Daemon.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" />
+    <ProjectReference Include="..\..\src\ModularRuntime.Cli\ModularRuntime.Cli.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" />
+  </ItemGroup>
+
+</Project>

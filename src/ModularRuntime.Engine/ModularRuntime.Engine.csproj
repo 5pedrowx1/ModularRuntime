@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\ModularRuntime.Contracts\ModularRuntime.Contracts.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageId>ModularRuntime.Engine</PackageId>
+    <Description>ModularRuntime plugin engine: lifecycle state machine, event bus, service registry, extension points, and resource ownership. Used by hosts that embed ModularRuntime (with ModularRuntime.Loader).</Description>
+    <PackageTags>modularruntime;plugins</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

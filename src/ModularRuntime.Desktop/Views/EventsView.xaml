@@ -1,0 +1,86 @@
+<UserControl x:Class="ModularRuntime.Desktop.Views.EventsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="clr-namespace:ModularRuntime.Desktop.Views">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <DockPanel Margin="0,8,0,16">
+            <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE72C;" ToolTip="Refresh" Command="{Binding RefreshCommand}" AutomationProperties.Name="Refresh" />
+            <StackPanel>
+                <TextBlock Text="Events" Style="{StaticResource TitleText}" />
+                <TextBlock Style="{StaticResource SecondaryText}" Margin="0,4,0,0">
+                    <Run Text="Active subscriptions on the event bus:" /> <Run Text="{Binding TotalCount, Mode=OneWay}" />
+                </TextBlock>
+            </StackPanel>
+        </DockPanel>
+        <TextBox Grid.Row="1" Width="320" HorizontalAlignment="Left" Margin="0,0,0,12" Tag="Search topics or subscribers"
+                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Search subscriptions" />
+
+        <Grid Grid.Row="2" Visibility="{Binding State, Converter={StaticResource Match}, ConverterParameter=Ready}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="280" />
+            </Grid.ColumnDefinitions>
+            <Border Style="{StaticResource Card}" Padding="6">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Margin="12,6,12,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="140" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="TOPIC" Style="{StaticResource CaptionText}" />
+                        <TextBlock Grid.Column="1" Text="SUBSCRIBER" Style="{StaticResource CaptionText}" />
+                        <TextBlock Grid.Column="2" Text="SINCE" Style="{StaticResource CaptionText}" />
+                    </Grid>
+                    <ListBox Style="{StaticResource RowList}" ItemsSource="{Binding Items}" AutomationProperties.Name="Subscriptions">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="140" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Topic}" Style="{StaticResource MonoText}" VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Subscriber.Display}" Style="{StaticResource BodyText}" />
+                                        <TextBlock Text="{Binding Subscriber.Kind}" Style="{StaticResource CaptionText}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" Text="{Binding CreatedAt, Converter={StaticResource LocalTime}, ConverterParameter=HH:mm:ss}"
+                                               Style="{StaticResource SecondaryText}" VerticalAlignment="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+            <Border Grid.Column="2" Style="{StaticResource Card}">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Topics" Style="{StaticResource SubtitleText}" Margin="0,0,0,10" />
+                    <ItemsControl ItemsSource="{Binding Topics}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel Margin="0,4">
+                                    <Border DockPanel.Dock="Right" Style="{StaticResource Pill}">
+                                        <TextBlock FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}">
+                                            <Run Text="{Binding SubscriberCount, Mode=OneWay}" /> <Run Text="sub." />
+                                        </TextBlock>
+                                    </Border>
+                                    <TextBlock Text="{Binding Topic}" Style="{StaticResource MonoText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                </DockPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <views:PageStateView Grid.Row="2" EmptyText="No subscriptions. Plugins and the host subscribe to topics through the event bus." />
+    </Grid>
+</UserControl>

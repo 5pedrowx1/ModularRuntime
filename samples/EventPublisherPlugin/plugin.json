@@ -1,0 +1,9 @@
+{
+  "id": "com.example.events.publisher",
+  "name": "Event Publisher Plugin",
+  "version": "1.0.0",
+  "apiVersion": "0.3",
+  "entryAssembly": "EventPublisherPlugin.dll",
+  "entryType": "EventPublisherPlugin.EventPublisherPlugin",
+  "startOrder": 20
+}

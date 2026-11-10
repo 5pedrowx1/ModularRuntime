@@ -1,0 +1,134 @@
+<Application x:Class="ModularRuntime.Desktop.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:ModularRuntime.Desktop.ViewModels"
+             xmlns:views="clr-namespace:ModularRuntime.Desktop.Views"
+             xmlns:conv="clr-namespace:ModularRuntime.Desktop.Converters"
+             ShutdownMode="OnMainWindowClose">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Replaced at runtime by ThemeService (Colors.Dark / Colors.Light). -->
+                <ResourceDictionary Source="Themes/Colors.Dark.xaml" />
+                <ResourceDictionary Source="Themes/Controls.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <conv:MatchToVisibilityConverter x:Key="Match" />
+            <conv:EnumToBooleanConverter x:Key="EnumBool" />
+            <conv:NullToVisibilityConverter x:Key="NullVis" />
+            <conv:BoolToVisibilityConverter x:Key="BoolVis" />
+            <conv:PositiveToVisibilityConverter x:Key="PositiveVis" />
+            <conv:JoinConverter x:Key="Join" />
+            <conv:LevelShortConverter x:Key="LevelShort" />
+            <conv:LocalTimeConverter x:Key="LocalTime" />
+
+            <!-- Page view model → view -->
+            <DataTemplate DataType="{x:Type vm:DashboardViewModel}"><views:DashboardView /></DataTemplate>
+            <DataTemplate DataType="{x:Type vm:StoreViewModel}"><views:StoreView /></DataTemplate>
+            <DataTemplate DataType="{x:Type vm:PluginsViewModel}"><views:PluginsView /></DataTemplate>
+            <DataTemplate DataType="{x:Type vm:EventsViewModel}"><views:EventsView /></DataTemplate>
+            <DataTemplate DataType="{x:Type vm:ServicesViewModel}"><views:ServicesView /></DataTemplate>
+            <DataTemplate DataType="{x:Type vm:ExtensionsViewModel}"><views:ExtensionsView /></DataTemplate>
+            <DataTemplate DataType="{x:Type vm:LogsViewModel}"><views:LogsView /></DataTemplate>
+            <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><views:SettingsView /></DataTemplate>
+
+            <!-- Plugin / connection state pill -->
+            <Style x:Key="StatePill" TargetType="Border" BasedOn="{StaticResource Pill}">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding State}" Value="Running">
+                        <Setter Property="Background" Value="{DynamicResource SuccessSubtleBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Failed">
+                        <Setter Property="Background" Value="{DynamicResource ErrorSubtleBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Stopping">
+                        <Setter Property="Background" Value="{DynamicResource WarningSubtleBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Loaded">
+                        <Setter Property="Background" Value="{DynamicResource WarningSubtleBrush}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+            <Style x:Key="StatePillText" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="11.5" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding State}" Value="Running">
+                        <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Failed">
+                        <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Stopping">
+                        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding State}" Value="Loaded">
+                        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Package trust pill: only OfficialVerified uses the success color. -->
+            <Style x:Key="TrustPill" TargetType="Border" BasedOn="{StaticResource Pill}">
+                <Setter Property="Background" Value="{DynamicResource NeutralSubtleBrush}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Trust}" Value="OfficialVerified">
+                        <Setter Property="Background" Value="{DynamicResource SuccessSubtleBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Trust}" Value="LocalUnverified">
+                        <Setter Property="Background" Value="{DynamicResource WarningSubtleBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Trust}" Value="Modified">
+                        <Setter Property="Background" Value="{DynamicResource ErrorSubtleBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Trust}" Value="VerificationFailed">
+                        <Setter Property="Background" Value="{DynamicResource ErrorSubtleBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Trust}" Value="Revoked">
+                        <Setter Property="Background" Value="{DynamicResource ErrorSubtleBrush}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+            <Style x:Key="TrustPillText" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="11.5" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Trust}" Value="OfficialVerified">
+                        <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Trust}" Value="LocalUnverified">
+                        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Trust}" Value="Modified">
+                        <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Trust}" Value="VerificationFailed">
+                        <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Log level colors -->
+            <Style x:Key="LevelText" TargetType="TextBlock" BasedOn="{StaticResource MonoText}">
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{DynamicResource TextTertiaryBrush}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Level}" Value="Information">
+                        <Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Level}" Value="Warning">
+                        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Level}" Value="Error">
+                        <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Level}" Value="Critical">
+                        <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

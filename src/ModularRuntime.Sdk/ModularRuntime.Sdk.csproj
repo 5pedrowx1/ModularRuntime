@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>ModularRuntime.Sdk</PackageId>
+    <Description>Helpers for ModularRuntime plugin authors: typed JSON payloads for events, services, and extension points, and an operation router for service and contribution handlers. Built on ModularRuntime.Contracts; ships privately with each plugin.</Description>
+    <PackageTags>modularruntime;plugins;sdk</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ModularRuntime.Contracts\ModularRuntime.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

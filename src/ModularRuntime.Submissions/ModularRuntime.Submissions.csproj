@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!--
+      The public submission format: submission.json (schema 2), source-integrity.json, and the
+      classification of files that must never be submitted (keys, credentials) or that need a
+      reviewer's attention. Used by `dotnet modularruntime prepare-submission` (DevTools) and by the
+      official review tools, which live in a separate, private repository and depend on this one.
+      No review, approval, key, or signing logic belongs here.
+    -->
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

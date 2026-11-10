@@ -1,0 +1,73 @@
+# ModularRuntime (public repository): runtime, SDK, DevTools, tools, tests, docs, samples.
+
+# Build output
+bin/
+obj/
+artifacts/
+TestResults/
+*.nupkg
+*.snupkg
+
+# IDE and user state
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.swp
+*.DotSettings.user
+Thumbs.db
+.DS_Store
+
+# Generated plugin staging (plugins/README.md is tracked)
+plugins/*
+!plugins/README.md
+
+# Local test and runtime artifacts
+*.log
+*.trx
+*.coverage
+coverage/
+*.dmp
+*.tmp
+
+# Keys, certificates, and credentials: never committed (signing keys live offline only).
+*.pem
+*.key
+*.pfx
+*.p12
+*.snk
+*.jks
+*.keystore
+*.kdbx
+*.ppk
+id_rsa*
+id_ed25519*
+*.private.pem
+*.trust.json
+!src/**/OfficialTrustStore.json
+.env
+.env.*
+secrets.json
+*.publishsettings
+*.pubxml.user
+nuget.config.user
+.npmrc
+.pypirc
+
+# Publishing working folders (prepared packages, submissions, approvals) belong to the Hub or the
+# offline signing machine, never to this repository.
+prepared/
+submission/
+/submissions/
+approval.json
+approval.sig
+
+# Build logs can contain environment variables (and secrets): never committed
+*.binlog
+# Local credential files, backups, editor leftovers
+.git-credentials
+.netrc
+.pgpass
+*.bak
+*.orig

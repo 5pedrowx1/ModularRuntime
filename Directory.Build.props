@@ -1,0 +1,52 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <Deterministic>true</Deterministic>
+    <!--
+      Product version: one value for every executable, library, and NuGet package of a release.
+      The plugin API version is separate (ModularRuntimePluginApiVersion, PluginApiVersion.Supported)
+      and changes only when the plugin contracts change. See docs/VERSIONING.md.
+    -->
+    <VersionPrefix>0.6.0</VersionPrefix>
+    <ModularRuntimePluginApiVersion>0.3</ModularRuntimePluginApiVersion>
+    <Authors>ModularRuntime</Authors>
+    <Product>ModularRuntime</Product>
+    <Company>ModularRuntime</Company>
+    <Copyright>Copyright (c) 2026 ModularRuntime</Copyright>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <!--
+      NuGet: only the public SDK surface is packable (Contracts, Sdk, Engine, Loader, Templates,
+      DevTools); each of those projects sets IsPackable=true. Every package is Apache-2.0 (LICENSE,
+      NOTICE at the repository root). scripts/pack-sdk.ps1 packs them into artifacts/nuget. Nothing
+      is published automatically.
+    -->
+    <IsPackable>false</IsPackable>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageProjectUrl>https://github.com/5pedrowx1/ModularRuntime</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/5pedrowx1/ModularRuntime.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(MSBuildProjectName)' != 'ModularRuntime.Contracts'">
+    <AssemblyVersion>$(VersionPrefix).0</AssemblyVersion>
+    <FileVersion>$(VersionPrefix).0</FileVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'ModularRuntime.Contracts'">
+    <!--
+      The contracts assembly identity follows the plugin API version (major.minor.0.0).
+      While the API is experimental (0.x), every API minor is a breaking line: plugins must be
+      rebuilt against the matching contracts, and the loader requires the same major.minor.
+      From API 1.0 onward the assembly version stays fixed for the whole major line.
+    -->
+    <AssemblyVersion>$(ModularRuntimePluginApiVersion).0.0</AssemblyVersion>
+    <FileVersion>$(VersionPrefix).0</FileVersion>
+  </PropertyGroup>
+</Project>

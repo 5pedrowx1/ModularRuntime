@@ -1,0 +1,9 @@
+{
+  "id": "com.example.services.consumer",
+  "name": "Service Consumer Plugin",
+  "version": "1.0.0",
+  "apiVersion": "0.3",
+  "entryAssembly": "ServiceConsumerPlugin.dll",
+  "entryType": "ServiceConsumerPlugin.ServiceConsumerPlugin",
+  "startOrder": 20
+}

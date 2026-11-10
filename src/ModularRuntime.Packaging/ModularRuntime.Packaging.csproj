@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- plugin.json is validated with the Loader's own rules (no assembly is loaded). -->
+    <ProjectReference Include="..\ModularRuntime.Loader\ModularRuntime.Loader.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Public keys trusted for official packages and the official registry (no private keys, ever). -->
+    <EmbeddedResource Include="OfficialTrustStore.json" LogicalName="ModularRuntime.Packaging.OfficialTrustStore.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ModularRuntime.Packaging.Tests" />
+  </ItemGroup>
+
+</Project>

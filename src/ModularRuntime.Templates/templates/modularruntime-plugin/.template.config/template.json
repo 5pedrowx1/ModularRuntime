@@ -1,0 +1,244 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "ModularRuntime",
+  "classifications": [
+    "ModularRuntime",
+    "Plugin",
+    "Library"
+  ],
+  "identity": "ModularRuntime.Templates.Plugin",
+  "groupIdentity": "ModularRuntime.Templates.Plugin",
+  "name": "ModularRuntime Plugin",
+  "description": "A ModularRuntime plugin (plugin API @@PLUGIN_API@@): project, plugin.json, and a working entry type. Choose --kind for a lifecycle, event, service, or extension example.",
+  "shortName": "modularruntime-plugin",
+  "sourceName": "ModularRuntimePlugin",
+  "preferNameDirectory": true,
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "symbols": {
+    "kind": {
+      "type": "parameter",
+      "datatype": "choice",
+      "defaultValue": "basic",
+      "description": "What the generated plugin demonstrates.",
+      "choices": [
+        {
+          "choice": "basic",
+          "description": "Lifecycle, context, logger, and background work that stops with the plugin."
+        },
+        {
+          "choice": "event-publisher",
+          "description": "Publishes typed JSON events on a topic while it runs."
+        },
+        {
+          "choice": "event-subscriber",
+          "description": "Subscribes to a topic and logs the typed events it receives."
+        },
+        {
+          "choice": "service-provider",
+          "description": "Registers a service with asynchronous typed operations."
+        },
+        {
+          "choice": "service-consumer",
+          "description": "Calls a service by ID and handles it being unavailable."
+        },
+        {
+          "choice": "extension",
+          "description": "Contributes to a host extension point."
+        }
+      ]
+    },
+    "pluginId": {
+      "type": "parameter",
+      "datatype": "text",
+      "description": "Plugin ID: lowercase ASCII letters, digits, and '.', '_' or '-' separators (for example com.contoso.reports). Default: com.example.<project name>."
+    },
+    "pluginIdDefault": {
+      "type": "derived",
+      "valueSource": "name",
+      "valueTransform": "pluginIdTransform"
+    },
+    "pluginIdDefaultFull": {
+      "type": "generated",
+      "generator": "join",
+      "parameters": {
+        "symbols": [
+          {
+            "type": "const",
+            "value": "com.example."
+          },
+          {
+            "type": "ref",
+            "value": "pluginIdDefault"
+          }
+        ],
+        "separator": ""
+      }
+    },
+    "pluginIdValue": {
+      "type": "generated",
+      "generator": "coalesce",
+      "parameters": {
+        "sourceVariableName": "pluginId",
+        "fallbackVariableName": "pluginIdDefaultFull"
+      },
+      "replaces": "example.plugin.id"
+    },
+    "pluginName": {
+      "type": "parameter",
+      "datatype": "text",
+      "description": "Display name in plugin.json. Default: the project name."
+    },
+    "pluginNameValue": {
+      "type": "generated",
+      "generator": "coalesce",
+      "parameters": {
+        "sourceVariableName": "pluginName",
+        "fallbackVariableName": "name"
+      },
+      "replaces": "Modular Runtime Plugin Display Name"
+    },
+    "author": {
+      "type": "parameter",
+      "datatype": "text",
+      "description": "Author shown in plugin.json and the Store.",
+      "defaultValue": "Plugin author",
+      "replaces": "Plugin Author Name"
+    },
+    "topic": {
+      "type": "parameter",
+      "datatype": "text",
+      "description": "Event topic (event-publisher, event-subscriber).",
+      "defaultValue": "sample.greetings",
+      "replaces": "sample.greetings"
+    },
+    "serviceId": {
+      "type": "parameter",
+      "datatype": "text",
+      "description": "Service ID (service-provider, service-consumer).",
+      "defaultValue": "sample.text",
+      "replaces": "sample.text"
+    },
+    "extensionPoint": {
+      "type": "parameter",
+      "datatype": "text",
+      "description": "Extension point ID (extension).",
+      "defaultValue": "sample.formatters",
+      "replaces": "sample.formatters"
+    },
+    "sdkVersion": {
+      "type": "parameter",
+      "datatype": "text",
+      "description": "Version of the ModularRuntime.Sdk package to reference.",
+      "defaultValue": "@@MODULARRUNTIME_VERSION@@",
+      "replaces": "MODULARRUNTIME_SDK_VERSION"
+    },
+    "skipRestore": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "Do not restore the project after creating it.",
+      "defaultValue": "false"
+    }
+  },
+  "forms": {
+    "pluginIdTransform": {
+      "identifier": "chain",
+      "steps": [
+        "lowerCaseInvariant",
+        "replaceInvalidIdCharacters",
+        "collapseSeparators",
+        "trimSeparators"
+      ]
+    },
+    "replaceInvalidIdCharacters": {
+      "identifier": "replace",
+      "pattern": "[^a-z0-9]+",
+      "replacement": "-"
+    },
+    "collapseSeparators": {
+      "identifier": "replace",
+      "pattern": "-{2,}",
+      "replacement": "-"
+    },
+    "trimSeparators": {
+      "identifier": "replace",
+      "pattern": "^-+|-+$",
+      "replacement": ""
+    },
+    "lowerCaseInvariant": {
+      "identifier": "lowerCaseInvariant"
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "condition": "(kind != \"basic\")",
+          "exclude": [
+            "Kinds/Basic.cs"
+          ]
+        },
+        {
+          "condition": "(kind != \"event-publisher\")",
+          "exclude": [
+            "Kinds/EventPublisher.cs"
+          ]
+        },
+        {
+          "condition": "(kind != \"event-subscriber\")",
+          "exclude": [
+            "Kinds/EventSubscriber.cs"
+          ]
+        },
+        {
+          "condition": "(kind != \"service-provider\")",
+          "exclude": [
+            "Kinds/ServiceProvider.cs"
+          ]
+        },
+        {
+          "condition": "(kind != \"service-consumer\")",
+          "exclude": [
+            "Kinds/ServiceConsumer.cs"
+          ]
+        },
+        {
+          "condition": "(kind != \"extension\")",
+          "exclude": [
+            "Kinds/Extension.cs"
+          ]
+        },
+        {
+          "rename": {
+            "Kinds/Basic.cs": "ModularRuntimePlugin.cs",
+            "Kinds/EventPublisher.cs": "ModularRuntimePlugin.cs",
+            "Kinds/EventSubscriber.cs": "ModularRuntimePlugin.cs",
+            "Kinds/ServiceProvider.cs": "ModularRuntimePlugin.cs",
+            "Kinds/ServiceConsumer.cs": "ModularRuntimePlugin.cs",
+            "Kinds/Extension.cs": "ModularRuntimePlugin.cs"
+          }
+        }
+      ]
+    }
+  ],
+  "primaryOutputs": [
+    {
+      "path": "ModularRuntimePlugin.csproj"
+    }
+  ],
+  "postActions": [
+    {
+      "condition": "(!skipRestore)",
+      "description": "Restore NuGet packages required by this project.",
+      "manualInstructions": [
+        {
+          "text": "Run 'dotnet restore'"
+        }
+      ],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    }
+  ]
+}

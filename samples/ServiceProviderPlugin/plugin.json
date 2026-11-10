@@ -1,0 +1,9 @@
+{
+  "id": "com.example.services.provider",
+  "name": "Service Provider Plugin",
+  "version": "1.0.0",
+  "apiVersion": "0.3",
+  "entryAssembly": "ServiceProviderPlugin.dll",
+  "entryType": "ServiceProviderPlugin.ServiceProviderPlugin",
+  "startOrder": 10
+}

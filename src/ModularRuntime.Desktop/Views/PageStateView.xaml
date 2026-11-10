@@ -1,0 +1,42 @@
+<UserControl x:Class="ModularRuntime.Desktop.Views.PageStateView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root">
+    <!-- Shown over a page while it is not Ready. DataContext: a PageViewModel. -->
+    <Grid Visibility="{Binding State, Converter={StaticResource Match}, ConverterParameter=!Ready}">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="420">
+            <StackPanel Visibility="{Binding State, Converter={StaticResource Match}, ConverterParameter=Loading}">
+                <ProgressBar Style="{StaticResource LoadingBar}" Width="160" Margin="0,0,0,12" />
+                <TextBlock Text="Loading…" Style="{StaticResource SecondaryText}" HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <StackPanel Visibility="{Binding State, Converter={StaticResource Match}, ConverterParameter=Empty}">
+                <TextBlock Text="&#xE9CE;" Style="{StaticResource IconText}" FontSize="28" HorizontalAlignment="Center" Margin="0,0,0,10" />
+                <TextBlock Text="{Binding EmptyText, ElementName=Root}" Style="{StaticResource SecondaryText}"
+                           TextWrapping="Wrap" TextAlignment="Center" />
+            </StackPanel>
+
+            <StackPanel Visibility="{Binding State, Converter={StaticResource Match}, ConverterParameter=Error}">
+                <TextBlock Text="&#xE783;" Style="{StaticResource IconText}" FontSize="28" Foreground="{DynamicResource ErrorBrush}"
+                           HorizontalAlignment="Center" Margin="0,0,0,10" />
+                <TextBlock Text="The daemon returned an error." Style="{StaticResource SubtitleText}" HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding ErrorMessage}" Style="{StaticResource SecondaryText}" TextWrapping="Wrap"
+                           TextAlignment="Center" Margin="0,6,0,14" />
+                <Button Content="Try again" Command="{Binding RefreshCommand}" HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <StackPanel Visibility="{Binding State, Converter={StaticResource Match}, ConverterParameter=Disconnected}">
+                <TextBlock Text="&#xE871;" Style="{StaticResource IconText}" FontSize="28" HorizontalAlignment="Center" Margin="0,0,0,10" />
+                <TextBlock Text="Not connected to the daemon" Style="{StaticResource SubtitleText}" HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding DataContext.ConnectionMessage, RelativeSource={RelativeSource AncestorType=Window}}"
+                           Style="{StaticResource SecondaryText}" TextWrapping="Wrap" TextAlignment="Center" Margin="0,6,0,14" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button Content="Retry" Command="{Binding DataContext.RetryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            Margin="0,0,8,0" />
+                    <Button Content="Start daemon" Style="{StaticResource AccentButton}"
+                            Command="{Binding DataContext.StartDaemonCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</UserControl>

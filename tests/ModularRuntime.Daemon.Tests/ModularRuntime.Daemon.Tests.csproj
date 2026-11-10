@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ModularRuntime.Daemon\ModularRuntime.Daemon.csproj" />
+    <ProjectReference Include="..\..\src\ModularRuntime.Ipc\ModularRuntime.Ipc.csproj" />
+    <ProjectReference Include="..\ModularRuntime.TestSupport\ModularRuntime.TestSupport.csproj" />
+    <!-- Built before the tests; the process tests run the real executables from artifacts\app. -->
+    <ProjectReference Include="..\..\src\ModularRuntime.Cli\ModularRuntime.Cli.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\ModularRuntime.Desktop\ModularRuntime.Desktop.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <StagedPlugin Include="HelloPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\HelloPlugin" />
+    <StagedPlugin Include="FailingPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\FailingPlugin" />
+    <StagedPlugin Include="EventSubscriberPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\EventSubscriberPlugin" />
+    <StagedPlugin Include="ServiceProviderPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\ServiceProviderPlugin" />
+    <StagedPlugin Include="ModularRuntime.TestPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\fixtures\ModularRuntime.TestPlugin" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="@(StagedPlugin->'%(ProjectDir)\%(Identity).csproj')" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <Target Name="CopyPluginTestAssets" AfterTargets="Build">
+    <ItemGroup>
+      <_StagedPluginAsset Include="%(StagedPlugin.ProjectDir)\bin\$(Configuration)\net10.0\**\*" PluginName="%(StagedPlugin.Identity)" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_StagedPluginAsset)"
+          DestinationFiles="@(_StagedPluginAsset->'$(OutDir)test-plugins\%(PluginName)\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

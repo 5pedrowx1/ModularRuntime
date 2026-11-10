@@ -1,0 +1,10 @@
+{
+  "id": "example.plugin.id",
+  "name": "Modular Runtime Plugin Display Name",
+  "version": "1.0.0",
+  "apiVersion": "@@PLUGIN_API@@",
+  "entryAssembly": "ModularRuntimePlugin.dll",
+  "entryType": "ModularRuntimePlugin.ModularRuntimePlugin",
+  "author": "Plugin Author Name",
+  "description": "A ModularRuntime plugin."
+}

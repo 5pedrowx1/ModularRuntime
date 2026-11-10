@@ -1,0 +1,128 @@
+<UserControl x:Class="ModularRuntime.Desktop.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <Style x:Key="Label" TargetType="TextBlock" BasedOn="{StaticResource CaptionText}">
+            <Setter Property="Margin" Value="0,5" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+        </Style>
+        <Style x:Key="Value" TargetType="TextBox" BasedOn="{StaticResource ReadOnlyText}">
+            <Setter Property="Margin" Value="0,4" />
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel MaxWidth="900" HorizontalAlignment="Left">
+            <StackPanel Margin="0,8,0,20">
+                <TextBlock Text="Settings" Style="{StaticResource TitleText}" />
+                <TextBlock Text="Desktop preferences and the daemon for this profile." Style="{StaticResource SecondaryText}" Margin="0,4,0,0" />
+            </StackPanel>
+
+            <!-- Appearance -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Text="Appearance and behavior" Style="{StaticResource SubtitleText}" Margin="0,0,0,12" />
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <TextBlock Text="Theme" Style="{StaticResource BodyText}" Width="220" VerticalAlignment="Center" />
+                        <RadioButton Style="{StaticResource Chip}" Content="Dark" GroupName="Theme"
+                                     IsChecked="{Binding Theme, Converter={StaticResource EnumBool}, ConverterParameter=Dark}" />
+                        <RadioButton Style="{StaticResource Chip}" Content="Light" GroupName="Theme"
+                                     IsChecked="{Binding Theme, Converter={StaticResource EnumBool}, ConverterParameter=Light}" />
+                    </StackPanel>
+                    <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding StartDaemonOnLaunch}" Margin="0,4">
+                        <TextBlock Text="Start the daemon when this app opens and none is running" Style="{StaticResource BodyText}" />
+                    </CheckBox>
+                    <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding LogsAutoScroll}" Margin="0,8,0,4">
+                        <TextBlock Text="Auto-scroll logs by default (applies on next launch)" Style="{StaticResource BodyText}" />
+                    </CheckBox>
+                    <TextBlock Style="{StaticResource CaptionText}" Margin="0,10,0,0" TextWrapping="Wrap" TextTrimming="None"
+                               Text="Starting the daemon with your Windows session is not available in this version." />
+                    <TextBox Text="{Binding SettingsFile, Mode=OneWay, StringFormat=Preferences file: {0}}" Style="{StaticResource Value}"
+                             Foreground="{DynamicResource TextTertiaryBrush}" FontSize="11.5" />
+                </StackPanel>
+            </Border>
+
+            <!-- Daemon -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,12">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Button Content="Start daemon" Command="{Binding StartDaemonCommand}" Style="{StaticResource AccentButton}" Margin="0,0,8,0" />
+                            <Button Content="Stop daemon…" Command="{Binding StopDaemonCommand}" Style="{StaticResource DangerButton}"
+                                    ToolTip="Stops all plugins and ends the daemon. Closing this window does not do this." />
+                        </StackPanel>
+                        <TextBlock Text="Daemon" Style="{StaticResource SubtitleText}" VerticalAlignment="Center" />
+                    </DockPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition />
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Connection" Style="{StaticResource Label}" />
+                        <TextBox Grid.Column="1" Style="{StaticResource Value}" Text="{Binding ConnectionMessage, Mode=OneWay}" />
+                        <TextBlock Grid.Row="1" Text="Daemon version" Style="{StaticResource Label}" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource Value}" Text="{Binding Status.DaemonVersion, Mode=OneWay, FallbackValue=—, TargetNullValue=—}" />
+                        <TextBlock Grid.Row="2" Text="Process" Style="{StaticResource Label}" />
+                        <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource Value}" Text="{Binding Status.ProcessId, Mode=OneWay, StringFormat=pid {0}, FallbackValue=—, TargetNullValue=—}" />
+                        <TextBlock Grid.Row="3" Text="Started" Style="{StaticResource Label}" />
+                        <TextBox Grid.Row="3" Grid.Column="1" Style="{StaticResource Value}" Text="{Binding Status.StartedAt, Mode=OneWay, Converter={StaticResource LocalTime}, FallbackValue=—}" />
+                        <TextBlock Grid.Row="4" Text="Runtime ID" Style="{StaticResource Label}" />
+                        <TextBox Grid.Row="4" Grid.Column="1" Style="{StaticResource Value}" Text="{Binding Status.RuntimeId, Mode=OneWay, FallbackValue=—, TargetNullValue=—}" />
+                        <TextBlock Grid.Row="5" Text="Plugin API / IPC protocol" Style="{StaticResource Label}" />
+                        <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource BodyText}" Margin="0,4">
+                            <Run Text="{Binding Status.PluginApiVersion, Mode=OneWay, TargetNullValue=—}" /> <Run Text="/" /> <Run Text="{Binding ProtocolVersion, Mode=OneWay}" />
+                        </TextBlock>
+                        <TextBlock Grid.Row="6" Text="Pipe" Style="{StaticResource Label}" />
+                        <TextBox Grid.Row="6" Grid.Column="1" Style="{StaticResource Value}" Text="{Binding PipeName, Mode=OneWay}" />
+                    </Grid>
+                    <TextBlock Text="{Binding ActionMessage}" Style="{StaticResource SecondaryText}" TextWrapping="Wrap" TextTrimming="None" Margin="0,10,0,0"
+                               Visibility="{Binding ActionMessage, Converter={StaticResource NullVis}}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Folders -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Text="Data folders" Style="{StaticResource SubtitleText}" Margin="0,0,0,12" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition />
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Profile" Style="{StaticResource Label}" />
+                        <TextBox Grid.Column="1" Style="{StaticResource Value}" Text="{Binding ProfileDirectory, Mode=OneWay}" />
+                        <Button Grid.Column="2" Content="Open" Style="{StaticResource SubtleButton}" Command="{Binding OpenFolderCommand}" CommandParameter="{Binding ProfileDirectory}" />
+                        <TextBlock Grid.Row="1" Text="Plugins" Style="{StaticResource Label}" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource Value}" Text="{Binding PluginDirectory, Mode=OneWay}" />
+                        <Button Grid.Row="1" Grid.Column="2" Content="Open" Style="{StaticResource SubtleButton}" Command="{Binding OpenFolderCommand}" CommandParameter="{Binding PluginDirectory}" />
+                        <TextBlock Grid.Row="2" Text="Logs" Style="{StaticResource Label}" />
+                        <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource Value}" Text="{Binding LogDirectory, Mode=OneWay}" />
+                        <Button Grid.Row="2" Grid.Column="2" Content="Open" Style="{StaticResource SubtleButton}" Command="{Binding OpenFolderCommand}" CommandParameter="{Binding LogDirectory}" />
+                        <TextBlock Grid.Row="3" Text="Daemon configuration" Style="{StaticResource Label}" />
+                        <TextBox Grid.Row="3" Grid.Column="1" Style="{StaticResource Value}" Text="{Binding ConfigDirectory, Mode=OneWay}" />
+                        <Button Grid.Row="3" Grid.Column="2" Content="Open" Style="{StaticResource SubtleButton}" Command="{Binding OpenFolderCommand}" CommandParameter="{Binding ConfigDirectory}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- About -->
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="About" Style="{StaticResource SubtitleText}" Margin="0,0,0,8" />
+                    <TextBlock Style="{StaticResource BodyText}">
+                        <Run Text="ModularRuntime Desktop" /> <Run Text="{Binding DesktopVersion, Mode=OneWay}" />
+                    </TextBlock>
+                    <TextBlock Text="The desktop app is a client of the daemon. Closing it never stops the daemon or its plugins."
+                               Style="{StaticResource SecondaryText}" TextWrapping="Wrap" TextTrimming="None" Margin="0,4,0,0" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

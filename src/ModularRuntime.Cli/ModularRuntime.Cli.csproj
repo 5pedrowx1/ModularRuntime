@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutDir Condition="'$(RuntimeIdentifier)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\app\$(Configuration)\</OutDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- A client only: it never references the engine or loader. -->
+    <ProjectReference Include="..\ModularRuntime.Ipc\ModularRuntime.Ipc.csproj" />
+  </ItemGroup>
+
+</Project>

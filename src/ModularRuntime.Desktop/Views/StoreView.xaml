@@ -1,0 +1,346 @@
+<UserControl x:Class="ModularRuntime.Desktop.Views.StoreView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="clr-namespace:ModularRuntime.Desktop.Views"
+             x:Name="Page">
+    <UserControl.Resources>
+        <!-- Trust of a catalog entry: official (success), test key or untrusted key (warning). -->
+        <Style x:Key="StoreTrustPill" TargetType="Border" BasedOn="{StaticResource Pill}">
+            <Setter Property="Background" Value="{DynamicResource SuccessSubtleBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsTrustWarning}" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource WarningSubtleBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="StoreTrustText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsTrustWarning}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <DataTemplate x:Key="StoreCard">
+            <Border Style="{StaticResource Card}" Margin="0,0,14,14" Padding="16" MinHeight="230">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Icon (initial; the registry has no icons) + name + author -->
+                    <DockPanel>
+                        <Border DockPanel.Dock="Left" Width="42" Height="42" CornerRadius="10" Background="{DynamicResource AccentSubtleBrush}" Margin="0,0,12,0">
+                            <TextBlock Text="{Binding Initial}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Name}" Style="{StaticResource BodyText}" FontWeight="SemiBold" FontSize="14" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding Author, StringFormat=by {0}}" Style="{StaticResource CaptionText}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+                        </StackPanel>
+                    </DockPanel>
+
+                    <!-- Category + version -->
+                    <WrapPanel Grid.Row="1" Margin="0,12,0,0">
+                        <Border Style="{StaticResource Pill}" Margin="0,0,6,0">
+                            <TextBlock Text="{Binding Category}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </Border>
+                        <Border Style="{StaticResource Pill}">
+                            <TextBlock Text="{Binding Version, StringFormat=v{0}}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </Border>
+                    </WrapPanel>
+
+                    <TextBlock Grid.Row="2" Text="{Binding ShortDescription}" Style="{StaticResource SecondaryText}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
+                               Margin="0,10,0,10" MaxHeight="58" VerticalAlignment="Top" />
+
+                    <!-- Trust + installation state -->
+                    <DockPanel Grid.Row="3" Margin="0,0,0,12">
+                        <Border DockPanel.Dock="Left" Style="{StaticResource StoreTrustPill}" ToolTip="Signature of the catalog entry; the package itself is verified again at installation.">
+                            <TextBlock Text="{Binding TrustLabel}" Style="{StaticResource StoreTrustText}" />
+                        </Border>
+                        <TextBlock Text="{Binding InstallState}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis" Margin="8,0,0,0" />
+                    </DockPanel>
+
+                    <DockPanel Grid.Row="4">
+                        <Button DockPanel.Dock="Right" MinWidth="96" Command="{Binding ActionCommand}" Style="{StaticResource AccentButton}"
+                                AutomationProperties.Name="{Binding ActionText, StringFormat={}{0} plugin}">
+                            <StackPanel Orientation="Horizontal">
+                                <ProgressBar Style="{StaticResource LoadingBar}" Width="24" Margin="0,0,8,0" VerticalAlignment="Center"
+                                             Visibility="{Binding IsBusy, Converter={StaticResource BoolVis}}" />
+                                <TextBlock Text="{Binding ActionText}" />
+                            </StackPanel>
+                        </Button>
+                        <Button Content="Show more" Style="{StaticResource SubtleButton}" HorizontalAlignment="Left" Command="{Binding ShowMoreCommand}"
+                                AutomationProperties.Name="{Binding Name, StringFormat=Show more about {0}}" />
+                    </DockPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <DockPanel Grid.ColumnSpan="2" Margin="0,8,0,14">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Command="{Binding RefreshCatalogCommand}" Margin="0,0,8,0" AutomationProperties.Name="Refresh catalog">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE72C;" Style="{StaticResource IconText}" FontSize="12" Margin="0,0,8,0" />
+                        <TextBlock Text="Refresh catalog" />
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding InstallZipCommand}" Style="{StaticResource AccentButton}" AutomationProperties.Name="Install from ZIP"
+                        ToolTip="Install a plugin package from a ZIP file on this computer">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE8B5;" FontFamily="{StaticResource IconFont}" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center" />
+                        <TextBlock Text="Install from ZIP" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="Store" Style="{StaticResource TitleText}" />
+                <TextBlock Text="{Binding StatusText}" Style="{StaticResource SecondaryText}" Margin="0,4,0,0" TextWrapping="Wrap" />
+                <TextBlock Text="Test keys are trusted by this daemon (development setup). Packages signed with them are labelled as test."
+                           Style="{StaticResource CaptionText}" Foreground="{DynamicResource WarningBrush}" Margin="0,2,0,0"
+                           Visibility="{Binding UsesTestKeys, Converter={StaticResource BoolVis}}" />
+                <TextBlock Text="{Binding CatalogError}" Style="{StaticResource BodyText}" Foreground="{DynamicResource ErrorBrush}" TextWrapping="Wrap" Margin="0,4,0,0"
+                           Visibility="{Binding CatalogError, Converter={StaticResource NullVis}}" />
+            </StackPanel>
+        </DockPanel>
+
+        <!-- Areas -->
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,12">
+            <RadioButton Style="{StaticResource Chip}" Content="Discover" GroupName="StoreTab" AutomationProperties.Name="Discover"
+                         IsChecked="{Binding Tab, Converter={StaticResource EnumBool}, ConverterParameter=Discover}" />
+            <RadioButton Style="{StaticResource Chip}" GroupName="StoreTab" AutomationProperties.Name="Updates"
+                         IsChecked="{Binding Tab, Converter={StaticResource EnumBool}, ConverterParameter=Updates}">
+                <TextBlock>
+                    <Run Text="Updates" />
+                    <Run Text="{Binding UpdateCount, Mode=OneWay, StringFormat=(\{0\})}" />
+                </TextBlock>
+            </RadioButton>
+        </StackPanel>
+
+        <!-- Upload and operations in progress (stages and progress come from the daemon) -->
+        <StackPanel Grid.Row="2" Grid.ColumnSpan="2">
+            <Border Style="{StaticResource Card}" Padding="12,8" Margin="0,0,0,8" Visibility="{Binding UploadStatus, Converter={StaticResource NullVis}}">
+                <DockPanel>
+                    <ProgressBar DockPanel.Dock="Right" Style="{StaticResource LoadingBar}" Width="120" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding UploadStatus}" Style="{StaticResource BodyText}" VerticalAlignment="Center" />
+                </DockPanel>
+            </Border>
+            <views:OperationsView DataContext="{Binding Operations}" />
+        </StackPanel>
+
+        <!-- Result banner (only after the daemon reports the outcome) -->
+        <Border Grid.Row="3" Grid.ColumnSpan="2" CornerRadius="8" Padding="12,8" Margin="0,0,0,12" Visibility="{Binding Message, Converter={StaticResource NullVis}}">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Background" Value="{DynamicResource SuccessSubtleBrush}" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding MessageFailed}" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource ErrorSubtleBrush}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE711;" Width="24" Height="24"
+                        Command="{Binding DismissMessageCommand}" ToolTip="Dismiss" AutomationProperties.Name="Dismiss" />
+                <TextBlock Text="{Binding Message}" Style="{StaticResource BodyText}" TextWrapping="Wrap" TextTrimming="None" VerticalAlignment="Center" />
+            </DockPanel>
+        </Border>
+
+        <!-- Search and category (Discover) -->
+        <DockPanel Grid.Row="4" Margin="0,0,0,12" Visibility="{Binding Tab, Converter={StaticResource Match}, ConverterParameter=Discover}">
+            <TextBox DockPanel.Dock="Left" Width="300" Tag="Search by name, author, or description"
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Search the store" />
+            <ComboBox Width="200" Margin="10,0,0,0" HorizontalAlignment="Left" ItemsSource="{Binding Categories}" SelectedItem="{Binding Category}"
+                      AutomationProperties.Name="Category" />
+        </DockPanel>
+
+        <!-- ===== Discover: card grid (rows are virtualized) ===== -->
+        <Grid Grid.Row="5" Visibility="{Binding Tab, Converter={StaticResource Match}, ConverterParameter=Discover}">
+            <TextBlock Text="No plugins to show. The catalog is empty, not loaded, or nothing matches the search."
+                       Style="{StaticResource SecondaryText}" Margin="4,8" TextWrapping="Wrap"
+                       Visibility="{Binding HasItems, Converter={StaticResource BoolVis}, ConverterParameter=!}" />
+            <ItemsControl x:Name="CardRows" ItemsSource="{Binding Rows}" SizeChanged="OnCardsSizeChanged"
+                          VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" VirtualizingPanel.ScrollUnit="Pixel"
+                          ScrollViewer.CanContentScroll="True" AutomationProperties.Name="Store plugins">
+                <ItemsControl.Template>
+                    <ControlTemplate TargetType="ItemsControl">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="True">
+                            <ItemsPresenter />
+                        </ScrollViewer>
+                    </ControlTemplate>
+                </ItemsControl.Template>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <ItemsControl ItemsSource="{Binding Items}" ItemTemplate="{StaticResource StoreCard}" Focusable="False">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Rows="1" Columns="{Binding DataContext.ColumnCount, ElementName=Page}" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+
+        <!-- ===== Updates ===== -->
+        <Border Grid.Row="5" Style="{StaticResource Card}" Padding="6" VerticalAlignment="Top"
+                Visibility="{Binding Tab, Converter={StaticResource Match}, ConverterParameter=Updates}">
+            <Grid>
+                <TextBlock Text="Every installed package is up to date with the official registry (as of its last verified refresh)."
+                           Style="{StaticResource SecondaryText}" Margin="12" TextWrapping="Wrap"
+                           Visibility="{Binding HasUpdates, Converter={StaticResource BoolVis}, ConverterParameter=!}" />
+                <ItemsControl ItemsSource="{Binding Updates}" AutomationProperties.Name="Available updates">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="12,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}" Style="{StaticResource BodyText}" FontWeight="SemiBold" />
+                                    <TextBlock Style="{StaticResource SecondaryText}" Margin="0,2,0,0">
+                                        <Run Text="{Binding PluginId, Mode=OneWay}" /> <Run Text="·" />
+                                        <Run Text="{Binding InstalledVersion, Mode=OneWay}" /> <Run Text="→" /> <Run Text="{Binding AvailableVersion, Mode=OneWay}" />
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding ReleaseNotes}" Style="{StaticResource CaptionText}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                               Visibility="{Binding ReleaseNotes, Converter={StaticResource NullVis}}" />
+                                    <TextBlock Text="{Binding IncompatibilityReason}" Style="{StaticResource CaptionText}" Foreground="{DynamicResource WarningBrush}"
+                                               Visibility="{Binding IncompatibilityReason, Converter={StaticResource NullVis}}" />
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="Update" Style="{StaticResource AccentButton}" VerticalAlignment="Center"
+                                        Command="{Binding DataContext.UpdateCommand, ElementName=Page}" CommandParameter="{Binding}"
+                                        AutomationProperties.Name="Update plugin" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </Border>
+
+        <!-- ===== Show more: details panel ===== -->
+        <Border Grid.Row="4" Grid.RowSpan="2" Grid.Column="1" Width="380" Margin="2,0,0,0" Style="{StaticResource Card}"
+                Visibility="{Binding Details, Converter={StaticResource NullVis}}" AutomationProperties.Name="Plugin details">
+            <DockPanel>
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                    <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE711;" Command="{Binding CloseDetailsCommand}"
+                            ToolTip="Close" AutomationProperties.Name="Close details" />
+                    <Border DockPanel.Dock="Left" Width="42" Height="42" CornerRadius="10" Background="{DynamicResource AccentSubtleBrush}" Margin="0,0,12,0">
+                        <TextBlock Text="{Binding Details.Initial}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Details.Name}" Style="{StaticResource SubtitleText}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding Details.Author, StringFormat=by {0}}" Style="{StaticResource CaptionText}" />
+                    </StackPanel>
+                </DockPanel>
+                <Button DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Margin="0,12,0,0" Command="{Binding Details.ActionCommand}"
+                        Style="{StaticResource AccentButton}" AutomationProperties.Name="Install or update from details">
+                    <TextBlock Text="{Binding Details.ActionText}" />
+                </Button>
+                <TextBlock DockPanel.Dock="Bottom" Text="Downloaded, verified (signature and every file's SHA-256), and installed by the daemon. It is not started automatically."
+                           Style="{StaticResource CaptionText}" TextWrapping="Wrap" Margin="0,10,0,0" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel DataContext="{Binding Details.Plugin}">
+                        <TextBlock Text="{Binding Description}" Style="{StaticResource BodyText}" TextWrapping="Wrap" TextTrimming="None" Margin="0,4,0,14" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120" />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition />
+                                <RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition />
+                                <RowDefinition /><RowDefinition />
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Version" Style="{StaticResource CaptionText}" Margin="0,3" />
+                            <TextBlock Grid.Column="1" Text="{Binding Version}" Style="{StaticResource BodyText}" Margin="0,3" />
+                            <TextBlock Grid.Row="1" Text="Category" Style="{StaticResource CaptionText}" Margin="0,3" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Category}" Style="{StaticResource BodyText}" Margin="0,3" />
+                            <TextBlock Grid.Row="2" Text="Installed" Style="{StaticResource CaptionText}" Margin="0,3" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding InstalledVersion, TargetNullValue=no}" Style="{StaticResource BodyText}" Margin="0,3" />
+                            <TextBlock Grid.Row="3" Text="Compatibility" Style="{StaticResource CaptionText}" Margin="0,3" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding IncompatibilityReason, TargetNullValue=Compatible}" Style="{StaticResource BodyText}" TextWrapping="Wrap" Margin="0,3" />
+                            <TextBlock Grid.Row="4" Text="Plugin API" Style="{StaticResource CaptionText}" Margin="0,3" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ApiVersion}" Style="{StaticResource BodyText}" Margin="0,3" />
+                            <TextBlock Grid.Row="5" Text="Minimum runtime" Style="{StaticResource CaptionText}" Margin="0,3" />
+                            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding MinimumRuntimeVersion}" Style="{StaticResource BodyText}" Margin="0,3" />
+                            <TextBlock Grid.Row="6" Text="Signature" Style="{StaticResource CaptionText}" Margin="0,3" />
+                            <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding DataContext.Details.TrustLabel, ElementName=Page}" Style="{StaticResource BodyText}" Margin="0,3" />
+                            <TextBlock Grid.Row="7" Text="Signing key" Style="{StaticResource CaptionText}" Margin="0,3" />
+                            <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding SigningKeyId}" Style="{StaticResource BodyText}" Margin="0,3" />
+                            <TextBlock Grid.Row="8" Text="Package SHA-256" Style="{StaticResource CaptionText}" Margin="0,3" />
+                            <TextBox Grid.Row="8" Grid.Column="1" Text="{Binding PackageSha256, Mode=OneWay}" Style="{StaticResource ReadOnlyText}"
+                                     FontFamily="{StaticResource MonoFont}" FontSize="11" Margin="0,3" />
+                            <TextBlock Grid.Row="9" Text="Package size" Style="{StaticResource CaptionText}" Margin="0,3" />
+                            <TextBlock Grid.Row="9" Grid.Column="1" Text="{Binding PackageSize, StringFormat={}{0:N0} bytes}" Style="{StaticResource BodyText}" Margin="0,3" />
+                            <TextBlock Grid.Row="10" Text="Published" Style="{StaticResource CaptionText}" Margin="0,3" />
+                            <TextBlock Grid.Row="10" Grid.Column="1" Text="{Binding PublishedAt, Converter={StaticResource LocalTime}}" Style="{StaticResource BodyText}" Margin="0,3" />
+                            <TextBlock Grid.Row="11" Text="License" Style="{StaticResource CaptionText}" Margin="0,3" />
+                            <TextBlock Grid.Row="11" Grid.Column="1" Text="{Binding License, TargetNullValue=not declared}" Style="{StaticResource BodyText}" Margin="0,3" />
+                            <TextBlock Grid.Row="12" Text="Source" Style="{StaticResource CaptionText}" Margin="0,3" />
+                            <TextBox Grid.Row="12" Grid.Column="1" Text="{Binding SourceRepository, Mode=OneWay, TargetNullValue=not published}" Style="{StaticResource ReadOnlyText}" Margin="0,3" />
+                            <TextBlock Grid.Row="13" Text="Status" Style="{StaticResource CaptionText}" Margin="0,3" />
+                            <TextBlock Grid.Row="13" Grid.Column="1" Text="{Binding DataContext.Details.StatusLabel, ElementName=Page}" Style="{StaticResource BodyText}" Margin="0,3" />
+                            <TextBlock Grid.Row="14" Text="Publication" Style="{StaticResource CaptionText}" Margin="0,3" />
+                            <TextBox Grid.Row="14" Grid.Column="1" Text="{Binding DataContext.Details.Provenance, ElementName=Page, Mode=OneWay, TargetNullValue=not recorded}"
+                                     Style="{StaticResource ReadOnlyText}" TextWrapping="Wrap" Margin="0,3" />
+                        </Grid>
+                        <Border Background="{DynamicResource ErrorSubtleBrush}" CornerRadius="6" Padding="10,8" Margin="0,12,0,0"
+                                Visibility="{Binding DataContext.Details.StatusDetails, ElementName=Page, Converter={StaticResource NullVis}}"
+                                AutomationProperties.Name="Status details">
+                            <TextBlock Text="{Binding DataContext.Details.StatusDetails, ElementName=Page}" Style="{StaticResource BodyText}" TextWrapping="Wrap" TextTrimming="None" />
+                        </Border>
+                        <TextBlock Text="Integrity" Style="{StaticResource SubtitleText}" FontSize="13.5" Margin="0,14,0,4" />
+                        <TextBlock Style="{StaticResource SecondaryText}" TextWrapping="Wrap" TextTrimming="None"
+                                   Text="The catalog entry is signed. At installation the daemon checks the package SHA-256 above, the package signature, and the SHA-256 of every file, and checks every file again before each start. A signature confirms origin and integrity, not that the code is harmless." />
+                        <TextBlock Text="Versions" Style="{StaticResource SubtitleText}" FontSize="13.5" Margin="0,14,0,4" />
+                        <ItemsControl ItemsSource="{Binding DataContext.Details.VersionHistory, ElementName=Page}" AutomationProperties.Name="Version history">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" Style="{StaticResource SecondaryText}" TextWrapping="Wrap" TextTrimming="None" Margin="0,1" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="Release notes" Style="{StaticResource SubtitleText}" FontSize="13.5" Margin="0,14,0,4"
+                                   Visibility="{Binding ReleaseNotes, Converter={StaticResource NullVis}}" />
+                        <TextBlock Text="{Binding ReleaseNotes}" Style="{StaticResource SecondaryText}" TextWrapping="Wrap" TextTrimming="None"
+                                   Visibility="{Binding ReleaseNotes, Converter={StaticResource NullVis}}" />
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <views:PageStateView Grid.Row="4" Grid.RowSpan="2" Grid.ColumnSpan="2" EmptyText="" />
+    </Grid>
+</UserControl>

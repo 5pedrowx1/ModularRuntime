@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>ModularRuntime.DevTools</RootNamespace>
+    <!-- .NET tool: "dotnet modularruntime <command>" (the CLI resolves dotnet-modularruntime). -->
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>dotnet-modularruntime</ToolCommandName>
+    <PackageId>ModularRuntime.DevTools</PackageId>
+    <Description>Developer tool for ModularRuntime plugin authors: validate a plugin project, build and pack it into a local (unsigned) package compatible with the Plugin Manager, inspect packages without running code, and prepare a source submission for official review. Runs without the daemon. It never signs packages.</Description>
+    <PackageTags>modularruntime;plugins;dotnet-tool</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Package format, integrity manifest, and verification: the same code the daemon uses. No Daemon, IPC, or WPF. -->
+    <ProjectReference Include="..\ModularRuntime.Packaging\ModularRuntime.Packaging.csproj" />
+    <!-- Public catalog verification (registry-check). No daemon, no network access. -->
+    <ProjectReference Include="..\ModularRuntime.Registry\ModularRuntime.Registry.csproj" />
+    <!-- The submission format and the secret/review classifier shared with the team's validator. No signing. -->
+    <ProjectReference Include="..\ModularRuntime.Submissions\ModularRuntime.Submissions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ModularRuntime.DevTools.Tests" />
+  </ItemGroup>
+
+</Project>

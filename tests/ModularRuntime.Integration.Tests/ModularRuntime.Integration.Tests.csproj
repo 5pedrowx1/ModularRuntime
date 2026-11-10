@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ModularRuntime.Loader\ModularRuntime.Loader.csproj" />
+    <ProjectReference Include="..\..\src\ModularRuntime.Engine\ModularRuntime.Engine.csproj" />
+    <ProjectReference Include="..\..\src\ModularRuntime.Contracts\ModularRuntime.Contracts.csproj" />
+    <ProjectReference Include="..\ModularRuntime.TestSupport\ModularRuntime.TestSupport.csproj" />
+  </ItemGroup>
+
+  <!--
+    Plugin projects built before the tests (not referenced as assemblies) and staged into
+    $(OutDir)test-plugins/<Name>. Tests copy them into isolated temporary plugin roots.
+  -->
+  <ItemGroup>
+    <StagedPlugin Include="HelloPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\HelloPlugin" />
+    <StagedPlugin Include="FailingPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\FailingPlugin" />
+    <StagedPlugin Include="EventPublisherPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\EventPublisherPlugin" />
+    <StagedPlugin Include="EventSubscriberPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\EventSubscriberPlugin" />
+    <StagedPlugin Include="ServiceProviderPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\ServiceProviderPlugin" />
+    <StagedPlugin Include="ServiceConsumerPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\ServiceConsumerPlugin" />
+    <StagedPlugin Include="ExtensionContributorPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\ExtensionContributorPlugin" />
+    <StagedPlugin Include="FailureCleanupPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\FailureCleanupPlugin" />
+    <StagedPlugin Include="ModularRuntime.TestPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\fixtures\ModularRuntime.TestPlugin" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="@(StagedPlugin->'%(ProjectDir)\%(Identity).csproj')" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <Target Name="CopyPluginTestAssets" AfterTargets="Build">
+    <ItemGroup>
+      <_StagedPluginAsset Include="%(StagedPlugin.ProjectDir)\bin\$(Configuration)\net10.0\**\*" PluginName="%(StagedPlugin.Identity)" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(_StagedPluginAsset)"
+          DestinationFiles="@(_StagedPluginAsset->'$(OutDir)test-plugins\%(PluginName)\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

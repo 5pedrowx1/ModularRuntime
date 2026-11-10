@@ -1,0 +1,79 @@
+<UserControl x:Class="ModularRuntime.Desktop.Views.ExtensionsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="clr-namespace:ModularRuntime.Desktop.Views">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <DockPanel Margin="0,8,0,16">
+            <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE72C;" ToolTip="Refresh" Command="{Binding RefreshCommand}" AutomationProperties.Name="Refresh" />
+            <StackPanel>
+                <TextBlock Text="Extensions" Style="{StaticResource TitleText}" />
+                <TextBlock Style="{StaticResource SecondaryText}" Margin="0,4,0,0">
+                    <Run Text="Extension points and their contributions:" /> <Run Text="{Binding TotalCount, Mode=OneWay}" />
+                </TextBlock>
+            </StackPanel>
+        </DockPanel>
+        <TextBox Grid.Row="1" Width="320" HorizontalAlignment="Left" Margin="0,0,0,12" Tag="Search points, contributions, owners"
+                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Search extensions" />
+
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"
+                      Visibility="{Binding State, Converter={StaticResource Match}, ConverterParameter=Ready}">
+            <ItemsControl ItemsSource="{Binding Items}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,12">
+                            <StackPanel>
+                                <DockPanel>
+                                    <Border DockPanel.Dock="Right" Style="{StaticResource Pill}">
+                                        <TextBlock FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}">
+                                            <Run Text="contract" /> <Run Text="{Binding ContractVersion, Mode=OneWay}" />
+                                        </TextBlock>
+                                    </Border>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Name}" Style="{StaticResource SubtitleText}" />
+                                        <TextBlock Style="{StaticResource CaptionText}" Margin="0,2,0,0">
+                                            <Run Text="{Binding ExtensionPointId, Mode=OneWay}" /> <Run Text="· owned by" />
+                                            <Run Text="{Binding Owner.Display, Mode=OneWay}" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                </DockPanel>
+                                <TextBlock Style="{StaticResource CaptionText}" Margin="0,6,0,0"
+                                           Visibility="{Binding Operations.Count, Converter={StaticResource PositiveVis}}">
+                                    <Run Text="Operations:" /> <Run Text="{Binding Operations, Converter={StaticResource Join}, Mode=OneWay}" />
+                                </TextBlock>
+                                <Border Height="1" Background="{DynamicResource BorderSubtleBrush}" Margin="0,12,0,8" />
+                                <TextBlock Text="No contributions yet." Style="{StaticResource SecondaryText}"
+                                           Visibility="{Binding Contributions.Count, Converter={StaticResource PositiveVis}, ConverterParameter=!}" />
+                                <ItemsControl ItemsSource="{Binding Contributions}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="80" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding DisplayName}" Style="{StaticResource BodyText}" FontWeight="SemiBold" />
+                                                    <TextBlock Text="{Binding ContributionId}" Style="{StaticResource CaptionText}" />
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="1" Text="{Binding Owner.Display}" Style="{StaticResource SecondaryText}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="2" Text="{Binding ContractVersion, StringFormat=v{0}}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <views:PageStateView Grid.Row="2" EmptyText="No extension points are declared. Hosts or plugins declare extension points that other plugins contribute to." />
+    </Grid>
+</UserControl>
