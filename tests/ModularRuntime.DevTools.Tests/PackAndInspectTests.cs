@@ -285,7 +285,8 @@ public sealed class PackAndInspectTests : IDisposable
         var run = await PluginProjectFixture.RunAsync("doctor", "--project", project);
 
         Assert.True(run.ExitCode == 0, run.All);
-        Assert.Contains(".NET SDK: 10.", run.Output, StringComparison.Ordinal);
+        // Every installed SDK is listed (CI runners have several); a .NET 10 SDK must be among them.
+        Assert.Matches(@"ok\s+\.NET SDK: (?:[^\r\n]*, )?10\.\d+\.\d+", run.Output);
         Assert.Contains("No problems found.", run.Output, StringComparison.Ordinal);
     }
 }
