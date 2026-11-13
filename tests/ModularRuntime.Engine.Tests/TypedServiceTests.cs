@@ -652,44 +652,53 @@ public sealed class TypedServiceTests
         var successes = 0;
         var expectedFailures = 0;
         static bool IsExpected(string? code) => code is PluginErrorCodes.ServiceNotFound or PluginErrorCodes.ServiceUnavailable or PluginErrorCodes.ServiceRemoved or PluginErrorCodes.OperationCanceled;
-        var callers = Enumerable.Range(0, 6).Select(index => Task.Run(async () =>
-        {
-            while (!stopCallers.IsCancellationRequested)
+        // The callers are a continuous load, so they run on dedicated threads: a busy loop on a
+        // thread-pool thread (the binary call completes synchronously, so an async loop never
+        // yields) would hold one of the pool's few starting threads (one per processor) for the
+        // whole test, starving the continuations of the restarts under test and of every other
+        // test running in parallel.
+        var callers = Enumerable.Range(0, 6).Select(index => Task.Factory.StartNew(
+            () =>
             {
-                try
+                while (!stopCallers.IsCancellationRequested)
                 {
-                    if (engine.Host.TypedServices.Resolve<ICalculator>(ServiceId) is { } proxy)
+                    try
                     {
-                        var sum = index % 2 == 0 ? proxy.Add(1, 1) : await proxy.AddAsync(1, 1, CancellationToken.None);
-                        Assert.Equal(2, sum);
-                        Interlocked.Increment(ref successes);
-                    }
+                        if (engine.Host.TypedServices.Resolve<ICalculator>(ServiceId) is { } proxy)
+                        {
+                            var sum = index % 2 == 0 ? proxy.Add(1, 1) : proxy.AddAsync(1, 1, CancellationToken.None).GetAwaiter().GetResult();
+                            Assert.Equal(2, sum);
+                            Interlocked.Increment(ref successes);
+                        }
 
-                    using var binary = await engine.Host.Services.InvokeBinaryAsync("test.bytes", "echo", new byte[] { 1, 2, 3 });
-                    if (binary.IsSuccess)
-                    {
-                        Assert.Equal([1, 2, 3], binary.Payload.ToArray());
-                        Interlocked.Increment(ref successes);
+                        using var binary = engine.Host.Services.InvokeBinaryAsync("test.bytes", "echo", new byte[] { 1, 2, 3 }).AsTask().GetAwaiter().GetResult();
+                        if (binary.IsSuccess)
+                        {
+                            Assert.Equal([1, 2, 3], binary.Payload.ToArray());
+                            Interlocked.Increment(ref successes);
+                        }
+                        else if (IsExpected(binary.ErrorCode))
+                        {
+                            Interlocked.Increment(ref expectedFailures);
+                        }
+                        else
+                        {
+                            unexpected.Enqueue($"binary: [{binary.ErrorCode}] {binary.Message}");
+                        }
                     }
-                    else if (IsExpected(binary.ErrorCode))
+                    catch (TypedServiceException exception) when (IsExpected(exception.ErrorCode))
                     {
                         Interlocked.Increment(ref expectedFailures);
                     }
-                    else
+                    catch (Exception exception)
                     {
-                        unexpected.Enqueue($"binary: [{binary.ErrorCode}] {binary.Message}");
+                        unexpected.Enqueue(exception.ToString());
                     }
                 }
-                catch (TypedServiceException exception) when (IsExpected(exception.ErrorCode))
-                {
-                    Interlocked.Increment(ref expectedFailures);
-                }
-                catch (Exception exception)
-                {
-                    unexpected.Enqueue(exception.ToString());
-                }
-            }
-        })).ToArray();
+            },
+            CancellationToken.None,
+            TaskCreationOptions.LongRunning,
+            TaskScheduler.Default)).ToArray();
         var received = 0;
         var reader = Task.Run(async () =>
         {

@@ -59,7 +59,10 @@ rebuilt against the 0.7.0 packages and declare `"apiVersion": "0.4"`; no source 
   references another shared contract binds to the loaded copy of the major it references.
 - IPC protocol 1 (additive): `services.list` entries carry `kind` and `contractType`;
   `streams.list` returns streams and loaded shared contracts; `runtime.status` carries
-  `streamCount`. CLI `streams list`; desktop Streams page and a Kind column on Services.
+  `streamCount`. CLI `streams list`; desktop Streams page and a Kind column on Services. A
+  handshake that is not answered within the client's timeout is a `TimeoutException` (it
+  surfaced as a cancellation), so `DaemonLauncher.IsRunningAsync` reports "not running" and
+  `EnsureRunningAsync` keeps polling while a daemon is still starting on a busy machine.
 - SDK: `BinaryOperations`, `RegisterBinary(id, name, version, operations)`,
   `context.Consume<T>` / `ConsumeJson<T>`, `WriteJsonAsync<T>`; `PluginJson` serializes to UTF-8.
 - Templates: kinds `typed-provider`, `typed-consumer` (with a `Contracts/` shared contract

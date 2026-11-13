@@ -204,26 +204,36 @@ public sealed class CallbackTests
         var wrapper = registration.Callback;
         var outcomes = new int[2];
 
-        // Each invoker runs until it has seen the release a few times (bounded), so the release
-        // always happens under traffic.
-        var invokers = Enumerable.Range(0, 8).Select(_ => Task.Run(() =>
-        {
-            var refused = 0;
-            for (var round = 0; round < 1_000_000 && refused < 10; round++)
+        // Each invoker runs until it has seen the release a few times (bounded in time), so the
+        // release always happens under traffic. The invokers are a continuous load, so they run on
+        // dedicated threads rather than monopolizing the thread pool's few starting threads, and
+        // the release waits until every invoker has made its first call instead of assuming that
+        // a delay is enough for them to be scheduled (on a 4-processor machine it is not).
+        var started = Enumerable.Range(0, 8).Select(_ => new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)).ToArray();
+        var invokers = Enumerable.Range(0, 8).Select(index => Task.Factory.StartNew(
+            () =>
             {
-                try
+                var refused = 0;
+                var deadline = Environment.TickCount64 + (long)TestTimeout.TotalMilliseconds;
+                while (refused < 10 && Environment.TickCount64 < deadline)
                 {
-                    wrapper();
-                    Interlocked.Increment(ref outcomes[0]);
+                    try
+                    {
+                        wrapper();
+                        Interlocked.Increment(ref outcomes[0]);
+                        started[index].TrySetResult();
+                    }
+                    catch (TypedServiceException exception) when (exception.ErrorCode is PluginErrorCodes.CallbackReleased or PluginErrorCodes.CallbackUnavailable)
+                    {
+                        refused++;
+                        Interlocked.Increment(ref outcomes[1]);
+                    }
                 }
-                catch (TypedServiceException exception) when (exception.ErrorCode is PluginErrorCodes.CallbackReleased or PluginErrorCodes.CallbackUnavailable)
-                {
-                    refused++;
-                    Interlocked.Increment(ref outcomes[1]);
-                }
-            }
-        })).ToArray();
-        await Task.Delay(20);
+            },
+            CancellationToken.None,
+            TaskCreationOptions.LongRunning,
+            TaskScheduler.Default)).ToArray();
+        await Task.WhenAll(started.Select(signal => signal.Task)).WaitAsync(TestTimeout);
         await registration.DisposeAsync();
         await Task.WhenAll(invokers).WaitAsync(TestTimeout);
 
