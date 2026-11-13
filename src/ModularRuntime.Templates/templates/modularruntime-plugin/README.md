@@ -33,5 +33,13 @@ a new instance in a new load context. Everything registered through `context` (e
 subscriptions, services, contributions, tracked resources) is removed automatically when the
 plugin stops.
 
-See the ModularRuntime documentation: GETTING_STARTED, PLUGIN_API, EVENT_BUS_GUIDE,
-SERVICE_REGISTRY_GUIDE, EXTENSION_POINTS_GUIDE, PLUGIN_PACKAGING, PLUGIN_SUBMISSION_GUIDE.
+## Communication
+
+Plugins talk through the runtime, never through direct references: JSON events and services,
+typed services (a C# interface from a shared contract assembly declared in `plugin.json` as
+`sharedContracts`), binary services (bytes with explicit buffer ownership), and streams (buffered
+delivery with backpressure or loss). `dotnet new modularruntime-plugin --kind …` has a working
+example of each.
+
+See the ModularRuntime documentation: GETTING_STARTED, PLUGIN_API, COMMUNICATION,
+PLUGIN_PACKAGING, PLUGIN_SUBMISSION_GUIDE.

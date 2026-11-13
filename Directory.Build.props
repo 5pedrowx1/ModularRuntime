@@ -13,8 +13,8 @@
       The plugin API version is separate (ModularRuntimePluginApiVersion, PluginApiVersion.Supported)
       and changes only when the plugin contracts change. See docs/VERSIONING.md.
     -->
-    <VersionPrefix>0.6.0</VersionPrefix>
-    <ModularRuntimePluginApiVersion>0.3</ModularRuntimePluginApiVersion>
+    <VersionPrefix>0.7.0</VersionPrefix>
+    <ModularRuntimePluginApiVersion>0.4</ModularRuntimePluginApiVersion>
     <Authors>ModularRuntime</Authors>
     <Product>ModularRuntime</Product>
     <Company>ModularRuntime</Company>

@@ -26,9 +26,10 @@ public sealed class MainViewModel : ObservableObject
         Events = new EventsViewModel(connection, dispatcher);
         Services = new ServicesViewModel(connection, dispatcher);
         Extensions = new ExtensionsViewModel(connection, dispatcher);
+        Streams = new StreamsViewModel(connection, dispatcher);
         Logs = new LogsViewModel(connection, dispatcher, dialogs, settings.Load().LogsAutoScroll);
         Settings = new SettingsViewModel(connection, dispatcher, dialogs, settings, theme);
-        Pages = [Dashboard, Store, Plugins, Events, Services, Extensions, Logs, Settings];
+        Pages = [Dashboard, Store, Plugins, Events, Services, Extensions, Streams, Logs, Settings];
 
         _selectedPage = Dashboard;
         Dashboard.IsActive = true;
@@ -56,6 +57,8 @@ public sealed class MainViewModel : ObservableObject
     public ServicesViewModel Services { get; }
 
     public ExtensionsViewModel Extensions { get; }
+
+    public StreamsViewModel Streams { get; }
 
     public LogsViewModel Logs { get; }
 

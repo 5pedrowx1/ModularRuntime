@@ -23,6 +23,8 @@
     <ProjectReference Include="..\..\src\ModularRuntime.Engine\ModularRuntime.Engine.csproj" />
     <ProjectReference Include="..\..\src\ModularRuntime.Contracts\ModularRuntime.Contracts.csproj" />
     <ProjectReference Include="..\ModularRuntime.TestSupport\ModularRuntime.TestSupport.csproj" />
+    <!-- The host's own (default-context) copy of the fixture contract, to show it has no identity with the shared one. -->
+    <ProjectReference Include="..\fixtures\ModularRuntimeTests.Contracts\ModularRuntimeTests.Contracts.csproj" />
   </ItemGroup>
 
   <!--
@@ -38,6 +40,11 @@
     <StagedPlugin Include="ServiceConsumerPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\ServiceConsumerPlugin" />
     <StagedPlugin Include="ExtensionContributorPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\ExtensionContributorPlugin" />
     <StagedPlugin Include="FailureCleanupPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\FailureCleanupPlugin" />
+    <StagedPlugin Include="TypedProviderPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\TypedProviderPlugin" />
+    <StagedPlugin Include="TypedConsumerPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\TypedConsumerPlugin" />
+    <StagedPlugin Include="BinaryProviderPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\BinaryProviderPlugin" />
+    <StagedPlugin Include="StreamPublisherPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\StreamPublisherPlugin" />
+    <StagedPlugin Include="StreamSubscriberPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\..\samples\StreamSubscriberPlugin" />
     <StagedPlugin Include="ModularRuntime.TestPlugin" ProjectDir="$(MSBuildThisFileDirectory)..\fixtures\ModularRuntime.TestPlugin" />
   </ItemGroup>
 

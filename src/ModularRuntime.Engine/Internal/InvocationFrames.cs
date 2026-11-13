@@ -19,10 +19,22 @@ namespace ModularRuntime.Engine.Internal;
 /// execution context, background work started from a handler or lifecycle method is
 /// considered part of that owner's flow.
 /// </para>
+/// <para>
+/// Synchronous typed-service calls use a second, thread-local stack (<see cref="PushSynchronous"/>)
+/// that costs no allocation: the frame is popped on the same thread when the call returns, and
+/// does not flow into work the provider starts in the background. <see cref="Contains"/> consults
+/// both stacks.
+/// </para>
 /// </remarks>
 internal static class InvocationFrames
 {
     private static readonly AsyncLocal<Frame?> Current = new();
+
+    [ThreadStatic]
+    private static SynchronousFrame[]? t_synchronous;
+
+    [ThreadStatic]
+    private static int t_synchronousDepth;
 
     /// <summary>
     /// Marks the current flow as running code of <paramref name="ownerKey"/>. Must be called
@@ -32,11 +44,61 @@ internal static class InvocationFrames
     public static void Enter(Guid runtimeId, Guid ownerKey) =>
         Current.Value = new Frame(runtimeId, ownerKey, Current.Value);
 
+    /// <summary>
+    /// Pushes a frame that flows with the execution context and returns the previous frame, so
+    /// the caller can restore it with <see cref="Restore"/> from a non-async method.
+    /// </summary>
+    public static Frame? EnterFlowing(Guid runtimeId, Guid ownerKey)
+    {
+        var previous = Current.Value;
+        Current.Value = new Frame(runtimeId, ownerKey, previous);
+        return previous;
+    }
+
+    /// <summary>Restores the frame returned by <see cref="EnterFlowing"/> on the current flow.</summary>
+    public static void Restore(Frame? previous) => Current.Value = previous;
+
+    /// <summary>Pushes a thread-local frame for a synchronous call; pair with <see cref="PopSynchronous"/> on the same thread.</summary>
+    public static void PushSynchronous(Guid runtimeId, Guid ownerKey)
+    {
+        var stack = t_synchronous ??= new SynchronousFrame[8];
+        var depth = t_synchronousDepth;
+        if (depth == stack.Length)
+        {
+            Array.Resize(ref stack, depth * 2);
+            t_synchronous = stack;
+        }
+
+        stack[depth] = new SynchronousFrame(runtimeId, ownerKey);
+        t_synchronousDepth = depth + 1;
+    }
+
+    public static void PopSynchronous()
+    {
+        var depth = t_synchronousDepth - 1;
+        if (depth < 0)
+        {
+            throw new InvalidOperationException("Synchronous invocation frames are unbalanced.");
+        }
+
+        t_synchronous![depth] = default;
+        t_synchronousDepth = depth;
+    }
+
     public static bool Contains(Guid runtimeId, Guid ownerKey)
     {
         for (var frame = Current.Value; frame is not null; frame = frame.Parent)
         {
             if (frame.RuntimeId == runtimeId && frame.OwnerKey == ownerKey)
+            {
+                return true;
+            }
+        }
+
+        var stack = t_synchronous;
+        for (var index = t_synchronousDepth - 1; index >= 0; index--)
+        {
+            if (stack![index].RuntimeId == runtimeId && stack[index].OwnerKey == ownerKey)
             {
                 return true;
             }
@@ -55,8 +117,19 @@ internal static class InvocationFrames
             }
         }
 
+        var stack = t_synchronous;
+        for (var index = t_synchronousDepth - 1; index >= 0; index--)
+        {
+            if (stack![index].RuntimeId == runtimeId)
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 
-    private sealed record Frame(Guid RuntimeId, Guid OwnerKey, Frame? Parent);
+    internal sealed record Frame(Guid RuntimeId, Guid OwnerKey, Frame? Parent);
+
+    private readonly record struct SynchronousFrame(Guid RuntimeId, Guid OwnerKey);
 }

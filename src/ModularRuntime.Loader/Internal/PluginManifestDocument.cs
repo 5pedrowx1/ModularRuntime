@@ -33,4 +33,11 @@ internal sealed class PluginManifestDocument
     /// <summary>Optional author or publisher name (at most 200 characters).</summary>
     [JsonPropertyName("author")]
     public string? Author { get; init; }
+
+    /// <summary>
+    /// Optional simple names of contract assemblies shared with other plugins (plugin API 0.4);
+    /// each is a <c>.dll</c> next to the entry assembly.
+    /// </summary>
+    [JsonPropertyName("sharedContracts")]
+    public string[]? SharedContracts { get; init; }
 }

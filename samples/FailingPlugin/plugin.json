@@ -2,7 +2,7 @@
   "id": "com.example.failing",
   "name": "Failing Plugin",
   "version": "1.0.0",
-  "apiVersion": "0.3",
+  "apiVersion": "0.4",
   "entryAssembly": "FailingPlugin.dll",
   "entryType": "FailingPlugin.FailingPlugin"
 }

@@ -96,6 +96,30 @@ public sealed class ServicesViewModel(IRuntimeConnection connection, IUiDispatch
         [item.ServiceId, item.Name, item.Owner.Display, .. item.Operations];
 }
 
+public sealed class StreamsViewModel(IRuntimeConnection connection, IUiDispatcher dispatcher)
+    : SearchablePageViewModel<StreamDto>("Streams", "", connection, dispatcher)
+{
+    private IReadOnlyList<SharedContractDto> _sharedContracts = [];
+
+    /// <summary>Contract assemblies loaded into shared contexts, with the plugins using them.</summary>
+    public IReadOnlyList<SharedContractDto> SharedContracts
+    {
+        get => _sharedContracts;
+        private set => SetProperty(ref _sharedContracts, value);
+    }
+
+    protected override async Task<bool> LoadAsync(IRuntimeClient client, CancellationToken cancellationToken)
+    {
+        var response = await client.GetStreamsAsync(cancellationToken);
+        SetItems(response.Streams);
+        SharedContracts = response.SharedContracts;
+        return response.Streams.Count > 0;
+    }
+
+    protected override IEnumerable<string?> SearchFields(StreamDto item) =>
+        [item.StreamId, item.Name, item.ItemType, item.Owner.Display];
+}
+
 public sealed class ExtensionsViewModel(IRuntimeConnection connection, IUiDispatcher dispatcher)
     : SearchablePageViewModel<ExtensionPointDto>("Extensions", "", connection, dispatcher)
 {

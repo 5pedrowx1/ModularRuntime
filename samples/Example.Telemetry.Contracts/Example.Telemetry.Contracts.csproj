@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <!--
+      A shared contract assembly. Plugins that declare it in plugin.json ("sharedContracts") get one
+      load of this assembly, so the interface and record types below have one identity across them.
+      Keep it self-contained: reference only the framework (and ModularRuntime.Contracts if needed).
+      Version it: same major = compatible; the runtime binds a plugin to a loaded copy that is at
+      least the version the plugin was compiled against.
+    -->
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </PropertyGroup>
+
+</Project>

@@ -280,6 +280,62 @@ internal static class PluginManifestReader
         ValidateOptionalText(manifest.Description, "description", 1000, manifestPath, pluginDirectory, pluginId, errors);
         ValidateOptionalText(manifest.Author, "author", 200, manifestPath, pluginDirectory, pluginId, errors);
 
+        var sharedContracts = new List<string>();
+        if (manifest.SharedContracts is { } declaredContracts)
+        {
+            if (declaredContracts.Length > PluginDescriptor.MaxSharedContracts)
+            {
+                errors.Add(FieldError(
+                    PluginDiscoveryErrorCodes.ManifestFieldInvalid,
+                    "sharedContracts",
+                    $"Manifest '{manifestPath}' declares more than {PluginDescriptor.MaxSharedContracts} shared contracts.",
+                    pluginDirectory,
+                    manifestPath,
+                    pluginId));
+            }
+
+            foreach (var contract in declaredContracts)
+            {
+                if (!PluginDescriptor.IsValidSharedContractName(contract))
+                {
+                    errors.Add(FieldError(
+                        PluginDiscoveryErrorCodes.ManifestFieldInvalid,
+                        "sharedContracts",
+                        $"Manifest '{manifestPath}' has an invalid shared contract name '{contract}': use the simple assembly name (letters, digits, '.', '_', '-'; no path, extension, or version; not a ModularRuntime assembly).",
+                        pluginDirectory,
+                        manifestPath,
+                        pluginId));
+                    continue;
+                }
+
+                if (sharedContracts.Contains(contract, StringComparer.OrdinalIgnoreCase))
+                {
+                    errors.Add(FieldError(
+                        PluginDiscoveryErrorCodes.ManifestFieldInvalid,
+                        "sharedContracts",
+                        $"Manifest '{manifestPath}' declares shared contract '{contract}' more than once.",
+                        pluginDirectory,
+                        manifestPath,
+                        pluginId));
+                    continue;
+                }
+
+                if (requireEntryAssemblyFile && !File.Exists(Path.Combine(pluginDirectory, contract + ".dll")))
+                {
+                    errors.Add(FieldError(
+                        PluginDiscoveryErrorCodes.SharedContractMissing,
+                        "sharedContracts",
+                        $"Plugin '{pluginId}' declares shared contract '{contract}', but '{contract}.dll' is not in '{pluginDirectory}'.",
+                        pluginDirectory,
+                        manifestPath,
+                        pluginId));
+                    continue;
+                }
+
+                sharedContracts.Add(contract);
+            }
+        }
+
         if (errors.Count > 0)
         {
             return new ManifestReadOutcome(null, errors);
@@ -295,7 +351,8 @@ internal static class PluginManifestReader
                 apiVersion!,
                 manifest.EntryAssembly!,
                 manifest.EntryType!,
-                startOrder);
+                startOrder,
+                sharedContracts);
         }
         catch (ArgumentException exception)
         {

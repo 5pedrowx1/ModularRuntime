@@ -36,7 +36,7 @@ public sealed class PluginRuntime : IAsyncDisposable
 
         _options = options;
         _loader = new PluginLoader(options.Logger);
-        _engine = new PluginEngine(options.Logger, options.Limits);
+        _engine = new PluginEngine(options.Logger, options.Limits, _loader.CreateSharedTypePolicy());
     }
 
     public string PluginDirectory => _options.PluginDirectory;
@@ -61,6 +61,9 @@ public sealed class PluginRuntime : IAsyncDisposable
 
     /// <summary>Resources owned by the current instance of a plugin.</summary>
     public IReadOnlyList<ResourceInfo> GetResources(PluginId pluginId) => _engine.GetResources(pluginId);
+
+    /// <summary>Contract assemblies currently loaded into shared contexts, with the plugins holding them.</summary>
+    public IReadOnlyList<SharedContractInfo> GetSharedContracts() => _loader.GetSharedContracts();
 
     /// <summary>
     /// Discovers, validates, registers, and marks plugins as validated. Registration failures

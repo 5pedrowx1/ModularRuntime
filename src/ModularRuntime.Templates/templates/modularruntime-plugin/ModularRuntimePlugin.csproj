@@ -31,4 +31,16 @@
     <None Update="plugin.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!--#if (typed) -->
+  <ItemGroup>
+    <!--
+      The shared contract assembly: a separate project so that other plugins can reference the same
+      assembly. It is copied next to the plugin and declared in plugin.json ("sharedContracts"), and
+      the runtime loads it once for every plugin that declares it. Keep it free of other dependencies.
+    -->
+    <Compile Remove="Contracts\**" />
+    <ProjectReference Include="Contracts\Shared.Contracts.csproj" />
+  </ItemGroup>
+  <!--#endif -->
+
 </Project>

@@ -43,6 +43,15 @@ public enum ResourceKind
 
     /// <summary>A disposable object registered with <see cref="IResourceScope.Track"/>.</summary>
     Custom = 4,
+
+    /// <summary>A stream created with <see cref="IEventStreamRegistry.Create{T}"/> (plugin API 0.4).</summary>
+    Stream = 5,
+
+    /// <summary>A stream subscription (plugin API 0.4).</summary>
+    StreamSubscription = 6,
+
+    /// <summary>A callback registered with <see cref="ITypedServiceRegistry.RegisterCallback{TDelegate}"/> (plugin API 0.4).</summary>
+    Callback = 7,
 }
 
 /// <summary>Immutable snapshot describing one owned resource.</summary>
@@ -55,7 +64,8 @@ public sealed record ResourceInfo(
 
 /// <summary>
 /// A resource owned by a host or plugin instance: an event subscription, a service
-/// registration, an extension point, an extension contribution, or a tracked object.
+/// registration (JSON, binary, or typed), an extension point, an extension contribution, a
+/// stream, a stream subscription, a callback registration, or a tracked object.
 /// </summary>
 /// <remarks>
 /// Disposing the resource removes it immediately and is idempotent. Resources that are not
@@ -115,6 +125,12 @@ public interface IRuntimeScope
     IPluginServiceRegistry Services { get; }
 
     IExtensionRegistry Extensions { get; }
+
+    /// <summary>Typed services (C# interfaces from shared contract assemblies). Added in plugin API 0.4.</summary>
+    ITypedServiceRegistry TypedServices { get; }
+
+    /// <summary>Buffered asynchronous streams. Added in plugin API 0.4.</summary>
+    IEventStreamRegistry Streams { get; }
 
     IResourceScope Resources { get; }
 }

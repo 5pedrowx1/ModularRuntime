@@ -1,0 +1,10 @@
+{
+  "id": "com.example.typed.consumer",
+  "name": "Typed Service Consumer Plugin",
+  "version": "1.0.0",
+  "apiVersion": "0.4",
+  "entryAssembly": "TypedConsumerPlugin.dll",
+  "entryType": "TypedConsumerPlugin.TypedConsumerPlugin",
+  "startOrder": 20,
+  "sharedContracts": ["Example.Telemetry.Contracts"]
+}

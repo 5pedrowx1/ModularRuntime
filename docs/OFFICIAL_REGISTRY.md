@@ -34,7 +34,7 @@ Schema 2 (v0.6) adds, per entry, `status` (`published` when absent, `withdrawn`,
 `statusReason` (required for `revoked`), `statusChangedAt`, `advisoryUrl`, `buildId`, and
 `approvalSha256`, and at the top level `revokedKeys` (package signing keys revoked by the
 administrator). Version 0.6 reads schemas 1 and 2. Withdrawn and revoked versions stay listed; the
-"latest version" is the highest *published* one ([PACKAGE_REVOCATION.md](PACKAGE_REVOCATION.md)).
+"latest version" is the highest *published* one ([PUBLISHING.md](PUBLISHING.md#withdrawal-and-revocation)).
 
 ```json
 {
@@ -50,8 +50,8 @@ administrator). Version 0.6 reads schemas 1 and 2. Withdrawn and revoked version
       "author": "Example Developer",
       "category": "Files",
       "version": "1.0.0",
-      "apiVersion": "0.3",
-      "minimumRuntimeVersion": "0.5.0",
+      "apiVersion": "0.4",
+      "minimumRuntimeVersion": "0.7.0",
       "publishedAt": "2026-11-08T00:00:00+00:00",
       "downloadUrl": "packages/com.example.filewatcher-1.0.0.zip",
       "packageSha256": "…64 lowercase hex…",

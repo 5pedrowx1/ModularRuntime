@@ -1,0 +1,9 @@
+{
+  "id": "com.example.streams.subscriber",
+  "name": "Stream Subscriber Plugin",
+  "version": "1.0.0",
+  "apiVersion": "0.4",
+  "entryAssembly": "StreamSubscriberPlugin.dll",
+  "entryType": "StreamSubscriberPlugin.StreamSubscriberPlugin",
+  "startOrder": 20
+}

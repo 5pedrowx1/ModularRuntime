@@ -11,6 +11,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\ModularRuntime.Contracts\ModularRuntime.Contracts.csproj" />
     <ProjectReference Include="..\ModularRuntime.TestPlugin.Dependency\ModularRuntime.TestPlugin.Dependency.csproj" />
+    <!-- Shared contract assembly: copied next to the plugin and declared in plugin.json (sharedContracts). -->
+    <ProjectReference Include="..\ModularRuntimeTests.Contracts\ModularRuntimeTests.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

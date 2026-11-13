@@ -10,11 +10,13 @@ internal sealed class PluginLoadContext : AssemblyLoadContext
     private static readonly AssemblyName ContractsName = ContractsAssembly.GetName();
 
     private readonly AssemblyDependencyResolver _resolver;
+    private readonly IReadOnlyDictionary<string, Assembly> _sharedContracts;
 
-    public PluginLoadContext(PluginId pluginId, string mainAssemblyPath)
+    public PluginLoadContext(PluginId pluginId, string mainAssemblyPath, IReadOnlyDictionary<string, Assembly>? sharedContracts = null)
         : base($"ModularRuntime.Plugin.{pluginId}.{Guid.NewGuid():N}", isCollectible: true)
     {
         _resolver = new AssemblyDependencyResolver(mainAssemblyPath);
+        _sharedContracts = sharedContracts ?? new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
     }
 
     protected override Assembly? Load(AssemblyName assemblyName)
@@ -23,6 +25,12 @@ internal sealed class PluginLoadContext : AssemblyLoadContext
         {
             // Shared contract identity: never load a private copy of ModularRuntime.Contracts.dll.
             return ContractsAssembly;
+        }
+
+        if (assemblyName.Name is not null && _sharedContracts.TryGetValue(assemblyName.Name, out var shared))
+        {
+            // A contract assembly declared in the manifest: the shared copy, never the private file.
+            return shared;
         }
 
         var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);

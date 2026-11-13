@@ -15,6 +15,8 @@ internal class RuntimeScopeFacade : IRuntimeScope
         Events = new ScopedEventBus(core, scope);
         Services = new ScopedServiceRegistry(core, scope);
         Extensions = new ScopedExtensionRegistry(core, scope);
+        TypedServices = new ScopedTypedServices(core, scope);
+        Streams = new ScopedStreams(core, scope);
         Resources = new ScopedResources(core, scope);
     }
 
@@ -25,6 +27,10 @@ internal class RuntimeScopeFacade : IRuntimeScope
     public IPluginServiceRegistry Services { get; }
 
     public IExtensionRegistry Extensions { get; }
+
+    public ITypedServiceRegistry TypedServices { get; }
+
+    public IEventStreamRegistry Streams { get; }
 
     public IResourceScope Resources { get; }
 
@@ -52,6 +58,9 @@ internal sealed class ScopedServiceRegistry(RuntimeCore core, OwnershipScope sco
     public IServiceRegistration Register(PluginServiceDefinition definition, PluginInvocationHandler handler) =>
         core.Services.Register(scope, definition, handler);
 
+    public IServiceRegistration RegisterBinary(BinaryServiceDefinition definition, BinaryInvocationHandler handler) =>
+        core.Services.RegisterBinary(scope, definition, handler);
+
     public IReadOnlyList<PluginServiceDescriptor> GetServices() => core.Services.GetServices();
 
     public PluginServiceDescriptor? GetService(string serviceId) => core.Services.GetService(serviceId);
@@ -66,6 +75,45 @@ internal sealed class ScopedServiceRegistry(RuntimeCore core, OwnershipScope sco
         ServiceInvocationOptions? options = null,
         CancellationToken cancellationToken = default) =>
         core.Services.InvokeAsync(scope, serviceId, operation, payload, options, cancellationToken);
+
+    public ValueTask<BinaryInvocationResult> InvokeBinaryAsync(
+        string serviceId,
+        string operation,
+        ReadOnlyMemory<byte> payload = default,
+        ServiceInvocationOptions? options = null,
+        CancellationToken cancellationToken = default) =>
+        core.Services.InvokeBinaryAsync(scope, serviceId, operation, payload, options, cancellationToken);
+}
+
+internal sealed class ScopedTypedServices(RuntimeCore core, OwnershipScope scope) : ITypedServiceRegistry
+{
+    public IServiceRegistration Register<TContract>(TypedServiceDefinition definition, TContract instance)
+        where TContract : class =>
+        core.Services.RegisterTyped(scope, definition, typeof(TContract), instance);
+
+    public TContract? Resolve<TContract>(string serviceId, Version? minimumVersion = null)
+        where TContract : class =>
+        core.Services.GetTypedClient<TContract>(scope, serviceId, minimumVersion)?.Service;
+
+    public ITypedServiceClient<TContract>? GetClient<TContract>(string serviceId, Version? minimumVersion = null)
+        where TContract : class =>
+        core.Services.GetTypedClient<TContract>(scope, serviceId, minimumVersion);
+
+    public ICallbackRegistration<TDelegate> RegisterCallback<TDelegate>(string name, TDelegate target)
+        where TDelegate : Delegate =>
+        core.Callbacks.Register(scope, name, target);
+}
+
+internal sealed class ScopedStreams(RuntimeCore core, OwnershipScope scope) : IEventStreamRegistry
+{
+    public IStreamProducer<T> Create<T>(StreamDefinition definition) => core.Streams.Create<T>(scope, definition);
+
+    public IStreamSubscription<T>? Subscribe<T>(string streamId, StreamSubscribeOptions? options = null) =>
+        core.Streams.Subscribe<T>(scope, streamId, options);
+
+    public IReadOnlyList<StreamDescriptor> GetStreams() => core.Streams.GetStreams();
+
+    public StreamDescriptor? GetStream(string streamId) => core.Streams.GetStream(streamId);
 }
 
 internal sealed class ScopedExtensionRegistry(RuntimeCore core, OwnershipScope scope) : IExtensionRegistry

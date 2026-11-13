@@ -3,8 +3,35 @@ using ModularRuntime.Engine.Ownership;
 
 namespace ModularRuntime.Engine.Internal;
 
+/// <summary>An owned resource whose handler is invoked on behalf of callers.</summary>
+internal interface IInvocableResource
+{
+    ResourceOwner Owner { get; }
+
+    OwnershipScope Scope { get; }
+
+    bool IsReleased { get; }
+}
+
+/// <summary>A resource that exposes a JSON request/response handler (service or contribution).</summary>
+internal interface IJsonInvocable : IInvocableResource
+{
+    /// <summary>The owner's handler, or <see langword="null"/> after release.</summary>
+    PluginInvocationHandler? Handler { get; }
+}
+
+/// <summary>A resource that exposes a binary request/response handler.</summary>
+internal interface IBinaryInvocable : IInvocableResource
+{
+    BinaryInvocationHandler? Handler { get; }
+
+    int MaxRequestBytes { get; }
+
+    int MaxResponseBytes { get; }
+}
+
 /// <summary>A resource that exposes a request/response handler (service or contribution).</summary>
-internal abstract class InvocableEntry : OwnedResource
+internal abstract class InvocableEntry : OwnedResource, IJsonInvocable
 {
     private PluginInvocationHandler? _handler;
 
@@ -16,6 +43,8 @@ internal abstract class InvocableEntry : OwnedResource
 
     /// <summary>The owner's handler, or <see langword="null"/> after release.</summary>
     public PluginInvocationHandler? Handler => Volatile.Read(ref _handler);
+
+    OwnershipScope IInvocableResource.Scope => Scope;
 
     /// <summary>Drops the reference to the owner's delegate (and therefore its target object).</summary>
     protected void ClearHandler() => Volatile.Write(ref _handler, null);
@@ -38,7 +67,7 @@ internal static class HandlerInvoker
 {
     public static async ValueTask<PluginInvocationResult> InvokeAsync(
         RuntimeCore core,
-        InvocableEntry entry,
+        IJsonInvocable entry,
         string targetId,
         string category,
         string unavailableCode,
@@ -131,6 +160,102 @@ internal static class HandlerInvoker
         }
     }
 
+    /// <summary>Binary counterpart of <see cref="InvokeAsync"/>: same admission, cancellation, and failure rules; byte limits instead of JSON limits.</summary>
+    public static async ValueTask<BinaryInvocationResult> InvokeBinaryAsync(
+        RuntimeCore core,
+        IBinaryInvocable entry,
+        string targetId,
+        string category,
+        string unavailableCode,
+        string removedCode,
+        BinaryRequest request,
+        CancellationToken cancellationToken)
+    {
+        var provider = entry.Owner;
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return BinaryResult(targetId, request, PluginOperationStatus.Canceled, provider, PluginErrorCodes.OperationCanceled, "The invocation was canceled before it started.");
+        }
+
+        if (request.Payload.Length > entry.MaxRequestBytes)
+        {
+            return BinaryResult(targetId, request, PluginOperationStatus.Rejected, provider, PluginErrorCodes.PayloadTooLarge, $"Request of {request.Payload.Length} bytes exceeds the limit of {entry.MaxRequestBytes} bytes for '{targetId}'.");
+        }
+
+        if (!entry.Scope.TryEnterInvocation(out var scopeToken))
+        {
+            return BinaryResult(targetId, request, PluginOperationStatus.Rejected, provider, unavailableCode, $"'{targetId}' is unavailable because its owner is shutting down.");
+        }
+
+        var completedAsynchronously = false;
+        ValueTask<BinaryResponse> pending = default;
+        try
+        {
+            var handler = entry.Handler;
+            if (handler is null || entry.IsReleased)
+            {
+                return BinaryResult(targetId, request, PluginOperationStatus.Rejected, provider, removedCode, $"'{targetId}' was removed.");
+            }
+
+            InvocationFrames.Enter(core.RuntimeId, entry.Scope.OwnerKey);
+            using var linked = cancellationToken.CanBeCanceled
+                ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, scopeToken)
+                : null;
+            var token = linked?.Token ?? scopeToken;
+
+            try
+            {
+                pending = handler(request, token);
+                handler = null;
+                completedAsynchronously = !pending.IsCompleted;
+                var response = await pending.ConfigureAwait(false);
+                pending = default;
+                if (response is null)
+                {
+                    return BinaryResult(targetId, request, PluginOperationStatus.Failed, provider, PluginErrorCodes.InvalidResponse, "The handler returned a null response.");
+                }
+
+                if (!response.IsSuccess)
+                {
+                    response.Owner?.Dispose();
+                    return BinaryResult(targetId, request, PluginOperationStatus.Failed, provider, response.ErrorCode, response.Message);
+                }
+
+                if (response.Payload.Length > entry.MaxResponseBytes)
+                {
+                    response.Owner?.Dispose();
+                    return BinaryResult(targetId, request, PluginOperationStatus.Failed, provider, PluginErrorCodes.PayloadTooLarge, $"Response of {response.Payload.Length} bytes exceeds the limit of {entry.MaxResponseBytes} bytes for '{targetId}'.");
+                }
+
+                return new BinaryInvocationResult(targetId, request.Operation, PluginOperationStatus.Succeeded, response.Payload, response.Owner, null, null, null, provider);
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+                var message = cancellationToken.IsCancellationRequested
+                    ? "The invocation was canceled by the caller."
+                    : "The invocation was canceled because the provider is shutting down.";
+                return BinaryResult(targetId, request, PluginOperationStatus.Canceled, provider, PluginErrorCodes.OperationCanceled, message);
+            }
+            catch (Exception exception) when (!ExceptionClassifier.IsFatal(exception))
+            {
+                var diagnostic = PluginDiagnostic.FromException(exception);
+                exception = null!;
+                var message = $"Handler for '{targetId}' operation '{request.Operation}' failed: {diagnostic.Message}";
+                core.Log(LogLevel.Warning, category, message, provider, diagnostic);
+                return new BinaryInvocationResult(targetId, request.Operation, PluginOperationStatus.Failed, ReadOnlyMemory<byte>.Empty, null, PluginErrorCodes.HandlerFailed, message, diagnostic, provider);
+            }
+        }
+        finally
+        {
+            pending = default;
+            entry.Scope.ExitInvocation();
+            if (completedAsynchronously)
+            {
+                await new ThreadPoolHop();
+            }
+        }
+    }
+
     public static PluginInvocationResult Result(
         string targetId,
         PluginRequest request,
@@ -142,4 +267,16 @@ internal static class HandlerInvoker
 
     public static PluginInvocationResult Rejected(string targetId, string operation, string errorCode, string message, ResourceOwner? provider = null) =>
         new(targetId, operation, PluginOperationStatus.Rejected, null, errorCode, message, null, provider);
+
+    public static BinaryInvocationResult BinaryResult(
+        string targetId,
+        BinaryRequest request,
+        PluginOperationStatus status,
+        ResourceOwner? provider,
+        string? errorCode,
+        string? message) =>
+        new(targetId, request.Operation, status, ReadOnlyMemory<byte>.Empty, null, errorCode, message, null, provider);
+
+    public static BinaryInvocationResult BinaryRejected(string targetId, string operation, string errorCode, string message, ResourceOwner? provider = null) =>
+        new(targetId, operation, PluginOperationStatus.Rejected, ReadOnlyMemory<byte>.Empty, null, errorCode, message, null, provider);
 }

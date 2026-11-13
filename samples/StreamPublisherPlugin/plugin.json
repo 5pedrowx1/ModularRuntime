@@ -1,0 +1,9 @@
+{
+  "id": "com.example.streams.publisher",
+  "name": "Stream Publisher Plugin",
+  "version": "1.0.0",
+  "apiVersion": "0.4",
+  "entryAssembly": "StreamPublisherPlugin.dll",
+  "entryType": "StreamPublisherPlugin.StreamPublisherPlugin",
+  "startOrder": 10
+}

@@ -87,6 +87,9 @@ public static class IpcOperations
     public const string ServicesList = "services.list";
     public const string ExtensionsList = "extensions.list";
 
+    /// <summary>Streams and loaded shared contract assemblies (plugin API 0.4).</summary>
+    public const string StreamsList = "streams.list";
+
     public const string LogsQuery = "logs.query";
     public const string LogsSubscribe = "logs.subscribe";
     public const string LogsUnsubscribe = "logs.unsubscribe";
@@ -122,7 +125,7 @@ public static class IpcOperations
     {
         RuntimeStatus, RuntimeShutdown,
         PluginsList, PluginsGet, PluginsStart, PluginsStop, PluginsRestart, PluginsStartAll, PluginsStopAll,
-        EventsSubscriptions, ServicesList, ExtensionsList,
+        EventsSubscriptions, ServicesList, ExtensionsList, StreamsList,
         LogsQuery, LogsSubscribe, LogsUnsubscribe,
         StateSubscribe, StateUnsubscribe,
         RegistryStatus, RegistryRefresh, RegistryList, RegistryGet,

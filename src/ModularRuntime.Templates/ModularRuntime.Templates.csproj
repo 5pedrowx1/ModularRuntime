@@ -14,7 +14,7 @@
     <PackageType>Template</PackageType>
     <PackageId>ModularRuntime.Templates</PackageId>
     <Title>ModularRuntime plugin templates</Title>
-    <Description>dotnet new templates for ModularRuntime plugins: modularruntime-plugin (--kind basic, event-publisher, event-subscriber, service-provider, service-consumer, extension).</Description>
+    <Description>dotnet new templates for ModularRuntime plugins: modularruntime-plugin (--kind basic, event-publisher, event-subscriber, service-provider, service-consumer, extension, typed-provider, typed-consumer, binary-provider, stream-publisher, stream-subscriber).</Description>
     <PackageTags>modularruntime;plugins;templates;dotnet-new</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <IsPackable>true</IsPackable>

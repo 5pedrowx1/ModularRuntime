@@ -126,16 +126,17 @@ observe the token cooperatively, like any in-process caller.
 
 | Operation | Payload | Result |
 | --- | --- | --- |
-| `runtime.status` | — | `RuntimeStatusDto`: daemon state, versions, ids, pid, start time, uptime, state version, folders, counts, connected clients |
-| `runtime.shutdown` | `{ reason? }` | `{ accepted, runningPluginCount }`; the daemon then stops gracefully (see [PROCESS_LIFECYCLE.md](PROCESS_LIFECYCLE.md)) |
+| `runtime.status` | — | `RuntimeStatusDto`: daemon state, versions, ids, pid, start time, uptime, state version, folders, counts (plugins, services of every kind, extension points, subscriptions, `streamCount`), connected clients |
+| `runtime.shutdown` | `{ reason? }` | `{ accepted, runningPluginCount }`; the daemon then stops gracefully (see [OPERATIONS.md](OPERATIONS.md)) |
 | `plugins.list` | — | `{ stateVersion, plugins: PluginSummaryDto[] }` |
 | `plugins.get` | `{ pluginId }` | `PluginDetailsDto`: summary, API version, entry, last error, owned resources |
 | `plugins.start` / `plugins.stop` | `{ pluginId }` | `OperationResultDto` (status, resulting state, error code/message/diagnostic) |
 | `plugins.restart` | `{ pluginId }` | `OperationResultDto`: stop (if running), then a start with a new registration, factory, and load context; managed packages are verified again before loading |
 | `plugins.startAll` / `plugins.stopAll` | — | `{ results: OperationResultDto[] }` in start order (stop: reverse) |
 | `events.subscriptions` | — | `{ stateVersion, subscriptions, topics }` |
-| `services.list` | — | `{ stateVersion, services }` |
+| `services.list` | — | `{ stateVersion, services }`; each `ServiceDto` carries `kind` (`Json`, `Binary`, `Typed`), `operations` (empty for typed services), and `contractType` (typed services: the contract interface, assembly, and version as text) |
 | `extensions.list` | — | `{ stateVersion, extensionPoints }` (with contributions) |
+| `streams.list` | — | `{ stateVersion, streams, sharedContracts }`: `StreamDto` (ID, name, version, item type, metadata, owner, availability, subscriber count, items written, default buffer and policy) and the contract assemblies loaded into shared contexts (`name`, `version`, `users`) |
 | `logs.query` | `{ filter?, afterSequence?, limit≤5000 }` | `{ entries, lastSequence, truncated }` |
 | `logs.subscribe` | `{ filter? }` | `{ subscriptionId, lastSequence }` |
 | `logs.unsubscribe` | `{ subscriptionId }` | — (`subscription_not_found` if unknown) |
@@ -181,7 +182,7 @@ Server-initiated messages:
 
 | Notification | Sent to | Payload |
 | --- | --- | --- |
-| `state.changed` | `state.subscribe` subscribers | `{ stateVersion }` — the runtime changed (plugin state, services, subscriptions, extensions, resources) |
+| `state.changed` | `state.subscribe` subscribers | `{ stateVersion }` — the runtime changed (plugin state, services, streams, subscriptions, extensions, resources) |
 | `logs.entries` | each log subscription | `{ subscriptionId, entries, droppedCount }` |
 | `daemon.stopping` | every connection | `{ reason }` — shutdown has started |
 | `packages.operation` | every connection | `PackageOperationDto` — stage, progress, message, error code, result |

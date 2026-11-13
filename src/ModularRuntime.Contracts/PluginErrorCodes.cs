@@ -43,6 +43,38 @@ public static class PluginErrorCodes
     public const string ServiceRemoved = "service_removed";
     public const string ServiceVersionIncompatible = "service_version_incompatible";
 
+    /// <summary>The service exists but was invoked with another mechanism (JSON, binary, typed).</summary>
+    public const string ServiceKindMismatch = "service_kind_mismatch";
+
+    // Typed services (plugin API 0.4)
+    public const string TypedServiceInvalidContract = "typed_service_invalid_contract";
+    public const string TypedServiceContractMismatch = "typed_service_contract_mismatch";
+
+    /// <summary>A value crossing a typed boundary has, or contains, a type from a plugin's private assembly.</summary>
+    public const string ValueNotShared = "value_not_shared";
+
+    /// <summary>
+    /// A value crossing a typed boundary could not be verified within the runtime's scan limits
+    /// (<c>RuntimeLimits.MaxValueScanReferences</c>, <c>MaxValueScanDepth</c>); the runtime fails closed.
+    /// </summary>
+    public const string ValueNotVerifiable = "value_not_verifiable";
+
+    /// <summary>A callback was invoked while its owner is shutting down.</summary>
+    public const string CallbackUnavailable = "callback_unavailable";
+
+    /// <summary>A callback was invoked after its registration was released (its owner stopped or disposed it).</summary>
+    public const string CallbackReleased = "callback_released";
+
+    // Streams (plugin API 0.4)
+    public const string DuplicateStream = "duplicate_stream";
+    public const string StreamNotFound = "stream_not_found";
+    public const string StreamUnavailable = "stream_unavailable";
+    public const string StreamRemoved = "stream_removed";
+    public const string StreamCompleted = "stream_completed";
+    public const string StreamItemTypeMismatch = "stream_item_type_mismatch";
+    public const string StreamVersionIncompatible = "stream_version_incompatible";
+    public const string SubscriptionDisposed = "subscription_disposed";
+
     // Extensions
     public const string DuplicateExtensionPoint = "duplicate_extension_point";
     public const string ExtensionPointNotFound = "extension_point_not_found";

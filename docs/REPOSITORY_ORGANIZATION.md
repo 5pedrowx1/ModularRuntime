@@ -15,8 +15,8 @@ verification in this repository. The official catalog has its own public reposit
 | Project | Role | Shipped to |
 |---|---|---|
 | Contracts | plugin API | NuGet (SDK) + app |
-| Engine | lifecycle, events, services, extensions | NuGet (SDK) + app |
-| Loader | discovery, manifests, collectible load contexts | NuGet (SDK) + app |
+| Engine | lifecycle, events, JSON/binary/typed services, streams, extensions | NuGet (SDK) + app |
+| Loader | discovery, manifests, collectible load contexts, shared contract contexts | NuGet (SDK) + app |
 | Sdk | helpers for plugin authors | NuGet (SDK) |
 | Templates | `dotnet new modularruntime-plugin` | NuGet (SDK) |
 | DevTools | `dotnet modularruntime`: validate, pack, inspect, prepare-submission, registry-check | NuGet tool (SDK) |
@@ -34,10 +34,11 @@ the tools that use them are not here.
 
 | Folder | Notes |
 |---|---|
-| `samples/` | example plugins and an embedded host, used by tests and docs |
+| `samples/` | example plugins (including a shared contract assembly) and an embedded host, used by tests and docs |
 | `scripts/` | `publish`, `pack-sdk`, `prepare-plugins` |
 | `tests/` | the full suite; `RepositoryHygieneTests` keep keys, publishing records, and administrative code out |
-| `docs/` | user, author, and architecture documentation; `V0.x_*.md` are release notes |
+| `docs/` | user, author, and architecture documentation; `CHANGELOG.md` keeps the per-version history |
+| `benchmarks/` | BenchmarkDotNet suite of the communication mechanisms (not part of the tests) |
 | `artifacts/`, `plugins/*` | build output and generated staging (ignored); `artifacts/test-registry` is a local development catalog signed with TEST keys |
 
 ## What is distributed

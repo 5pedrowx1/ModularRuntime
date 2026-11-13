@@ -128,9 +128,10 @@ provided. Restart is implemented by `PluginRuntime` (below).
 Used by stop, by a failed start (rollback), and by disposal:
 
 1. **Close the ownership scope**: no new resources (`scope_closed`), no new
-   incoming invocations (services report `service_unavailable`, subscriptions
-   are skipped), in-flight handler tokens are canceled. Outgoing calls by the
-   plugin (publish, invoke) remain allowed until step 5.
+   incoming invocations (services of every kind report `service_unavailable`,
+   typed proxies throw it, subscriptions are skipped), in-flight handler and
+   typed-call tokens are canceled. Outgoing calls by the plugin (publish, invoke,
+   stream writes) remain allowed until step 5.
 2. **Cancel `StoppingToken`.** Callbacks run outside every lock; failures are
    logged as `cancellation_callback_failed`.
 3. **Drain** in-flight handlers, bounded by `RuntimeLimits.DrainTimeout`
@@ -138,12 +139,15 @@ Used by stop, by a failed start (rollback), and by disposal:
    continues; such handlers keep running in-process.
 4. **`ShutdownAsync`** (rollback shutdown after a failed start).
 5. **Release owned resources** in reverse registration order, waiting for
-   releases already started by the plugin itself (v0.2.1); registries drop
-   handler references; extension points owned by the plugin are removed with
-   all their contributions.
+   releases already started by the plugin itself; registries drop handler
+   references and typed instances; streams owned by the plugin complete their
+   subscribers with `stream_removed`; its stream subscriptions are detached;
+   extension points owned by the plugin are removed with all their contributions.
 6. **Detach** the instance and dispose its lifetime token source; resume on a
    fresh thread-pool stack so callers never continue on top of plugin frames.
-7. **Release the factory**, requesting unload of the load context.
+7. **Release the factory**, requesting unload of the load context and releasing
+   the plugin's leases on shared contract contexts (a contract context is unloaded
+   when its last user releases it).
 
 Failure handling:
 
@@ -246,6 +250,16 @@ collected:
 Plugins that are restarted often in hosts that do not use System.Text.Json themselves can avoid
 the serializer caches entirely with a source-generated `JsonSerializerContext`.
 
+Shared contract contexts are not part of a plugin's retired contexts: they are reference-counted
+by the plugins that declare them and unloaded when the last one is released
+(`PluginRuntime.GetSharedContracts()` lists the live ones). Typed-service proxies live in the
+contract's context and are collected with it; a proxy kept by a consumer holds only identifiers
+and does not keep a stopped provider alive. A callback registered with `RegisterCallback` is
+released with its owner: the wrapper another plugin holds then answers `callback_released` and
+retains nothing. Raw delegates and objects a consumer hands to a provider are refused by default
+(`TypedValueCheck.Reject`); in `Warn` mode they cross and keep the consumer alive until the
+provider drops them.
+
 ## In the daemon (v0.3)
 
 `ModularRuntime.Daemon` drives exactly this lifecycle through `PluginRuntime`;
@@ -264,7 +278,7 @@ IPC requests map one to one onto `StartAsync`, `StopAsync`, `StartAllAsync`, and
 - A client disconnecting, crashing, or closing its window has no effect on
   plugin state.
 
-See [PROCESS_LIFECYCLE.md](PROCESS_LIFECYCLE.md).
+See [OPERATIONS.md](OPERATIONS.md).
 
 ## Concurrency
 

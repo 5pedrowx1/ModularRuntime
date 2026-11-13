@@ -3,6 +3,7 @@ using ModularRuntime.Engine.Events;
 using ModularRuntime.Engine.Extensions;
 using ModularRuntime.Engine.Ownership;
 using ModularRuntime.Engine.Services;
+using ModularRuntime.Engine.Streams;
 
 namespace ModularRuntime.Engine.Internal;
 
@@ -17,14 +18,17 @@ internal sealed class RuntimeCore
     private long _stateVersion;
     private TaskCompletionSource _stateChanged = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    public RuntimeCore(IRuntimeLogger logger, RuntimeLimits limits)
+    public RuntimeCore(IRuntimeLogger logger, RuntimeLimits limits, ISharedTypePolicy sharedTypePolicy)
     {
         Logger = logger;
         Limits = limits;
         RuntimeId = Guid.NewGuid();
+        SharedTypes = new SharedTypes(this, sharedTypePolicy);
         Events = new EventBus(this);
         Services = new ServiceRegistry(this);
+        Callbacks = new CallbackRegistry(this);
         Extensions = new ExtensionRegistry(this);
+        Streams = new StreamRegistry(this);
     }
 
     public Guid RuntimeId { get; }
@@ -37,7 +41,13 @@ internal sealed class RuntimeCore
 
     public ServiceRegistry Services { get; }
 
+    public CallbackRegistry Callbacks { get; }
+
     public ExtensionRegistry Extensions { get; }
+
+    public StreamRegistry Streams { get; }
+
+    public SharedTypes SharedTypes { get; }
 
     /// <summary>Set after every scope has been closed during engine disposal.</summary>
     public bool IsDisposed => Volatile.Read(ref _disposed) != 0;

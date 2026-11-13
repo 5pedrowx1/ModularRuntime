@@ -29,6 +29,7 @@
             <DataTemplate DataType="{x:Type vm:EventsViewModel}"><views:EventsView /></DataTemplate>
             <DataTemplate DataType="{x:Type vm:ServicesViewModel}"><views:ServicesView /></DataTemplate>
             <DataTemplate DataType="{x:Type vm:ExtensionsViewModel}"><views:ExtensionsView /></DataTemplate>
+            <DataTemplate DataType="{x:Type vm:StreamsViewModel}"><views:StreamsView /></DataTemplate>
             <DataTemplate DataType="{x:Type vm:LogsViewModel}"><views:LogsView /></DataTemplate>
             <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><views:SettingsView /></DataTemplate>
 
