@@ -30,7 +30,7 @@ public sealed class MainViewModelTests : IDisposable
 
         main.SelectedPage = main.Plugins;
 
-        Assert.Equal(8, main.Pages.Count);
+        Assert.Equal(9, main.Pages.Count);
         Assert.True(main.Plugins.IsActive);
         Assert.Single(main.Pages, p => p.IsActive);
 
@@ -45,7 +45,7 @@ public sealed class MainViewModelTests : IDisposable
     {
         var main = CreateMain();
 
-        Assert.Equal(["Dashboard", "Store", "Plugins", "Events", "Services", "Extensions", "Logs", "Settings"], main.Pages.Select(p => p.Title));
+        Assert.Equal(["Dashboard", "Store", "Plugins", "Events", "Services", "Extensions", "Streams", "Logs", "Settings"], main.Pages.Select(p => p.Title));
         Assert.Same(main.Store.Operations, main.Plugins.Operations); // one operation tracker, no duplicated package manager
     }
 

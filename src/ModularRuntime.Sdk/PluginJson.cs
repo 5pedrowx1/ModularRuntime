@@ -21,9 +21,9 @@ public static class PluginJson
     /// </summary>
     public static JsonSerializerOptions DefaultOptions { get; } = CreateDefaultOptions();
 
-    /// <summary>Serializes <paramref name="value"/> to a payload.</summary>
+    /// <summary>Serializes <paramref name="value"/> to a payload (UTF-8, no intermediate string).</summary>
     public static JsonPayload ToPayload<T>(T value, JsonSerializerOptions? options = null) =>
-        JsonPayload.Parse(JsonSerializer.Serialize(value, options ?? DefaultOptions));
+        JsonPayload.Parse(JsonSerializer.SerializeToUtf8Bytes(value, options ?? DefaultOptions));
 
     /// <summary>
     /// Deserializes a payload. Throws <see cref="PluginPayloadException"/> when the JSON does not
@@ -47,7 +47,7 @@ public static class PluginJson
         ArgumentNullException.ThrowIfNull(payload);
         try
         {
-            value = JsonSerializer.Deserialize<T>(payload.Json, options ?? DefaultOptions);
+            value = JsonSerializer.Deserialize<T>(payload.Utf8Json.Span, options ?? DefaultOptions);
             error = null;
             return true;
         }

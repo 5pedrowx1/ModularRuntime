@@ -5,13 +5,13 @@ namespace ModularRuntime.Contracts;
 /// </summary>
 /// <remarks>
 /// The API is experimental (0.x) while ModularRuntime is pre-release. For a 0.x API a plugin
-/// must declare exactly the supported <c>major.minor</c> (currently <c>0.3</c>; 0.3 added <c>IPluginContext.Descriptor</c>): any 0.x minor
+/// must declare exactly the supported <c>major.minor</c> (currently <c>0.4</c>; 0.4 added typed services, binary services, and streams): any 0.x minor
 /// may contain breaking changes. From 1.0 onward the rule becomes "same major, minor less than
 /// or equal to the supported minor". Patch-level API versions are not used.
 /// </remarks>
 public static class PluginApiVersion
 {
-    public static Version Supported { get; } = new(0, 3);
+    public static Version Supported { get; } = new(0, 4);
 
     public static bool IsCompatible(Version apiVersion)
     {

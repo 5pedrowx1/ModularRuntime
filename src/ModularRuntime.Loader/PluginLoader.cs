@@ -1,4 +1,5 @@
 using ModularRuntime.Contracts;
+using ModularRuntime.Engine;
 using ModularRuntime.Loader.Internal;
 
 namespace ModularRuntime.Loader;
@@ -15,11 +16,25 @@ public sealed class PluginLoader
     private static readonly StringComparer DirectoryComparer = StringComparer.OrdinalIgnoreCase;
 
     private readonly IRuntimeLogger _logger;
+    private readonly SharedContractRegistry _sharedContracts;
 
     public PluginLoader(IRuntimeLogger? logger = null)
     {
         _logger = logger ?? NullRuntimeLogger.Instance;
+        _sharedContracts = new SharedContractRegistry(_logger);
     }
+
+    /// <summary>
+    /// The contract assemblies currently loaded into shared contexts for the plugins created by
+    /// this loader's factories (manifest <c>sharedContracts</c>), with their users.
+    /// </summary>
+    public IReadOnlyList<SharedContractInfo> GetSharedContracts() => _sharedContracts.Snapshot();
+
+    /// <summary>
+    /// The engine policy matching this loader: types from the default context and from this
+    /// loader's shared contract contexts are shared; types from plugins' private contexts are not.
+    /// </summary>
+    public ISharedTypePolicy CreateSharedTypePolicy() => new LoaderSharedTypePolicy(_sharedContracts);
 
     public async Task<PluginDiscoveryResult> DiscoverAsync(
         string pluginDirectory,
@@ -181,7 +196,23 @@ public sealed class PluginLoader
         IPluginLoadVerifier? verifier = null)
     {
         ArgumentNullException.ThrowIfNull(candidate);
-        return new AssemblyPluginInstanceFactory(candidate, _logger, verifier);
+        return new AssemblyPluginInstanceFactory(candidate, _logger, verifier, _sharedContracts);
+    }
+
+    private sealed class LoaderSharedTypePolicy(SharedContractRegistry registry) : ISharedTypePolicy
+    {
+        public bool IsShared(Type type)
+        {
+            ArgumentNullException.ThrowIfNull(type);
+            return IsSharedAssembly(type.Assembly);
+        }
+
+        public bool IsSharedAssembly(System.Reflection.Assembly assembly)
+        {
+            ArgumentNullException.ThrowIfNull(assembly);
+            var context = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(assembly);
+            return context is null || !context.IsCollectible || registry.IsContractContext(context);
+        }
     }
 
     private PluginDiscoveryResult Failure(

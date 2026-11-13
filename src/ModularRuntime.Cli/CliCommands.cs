@@ -117,8 +117,39 @@ internal static class CliCommands
             foreach (var service in response.Services)
             {
                 var availability = service.IsAvailable ? "available" : "unavailable";
-                context.Output.WriteLine($"{service.ServiceId,-32} {service.Version,-8} {availability,-12} {service.Owner.Display}");
-                context.Output.WriteLine($"  operations: {string.Join(", ", service.Operations)}");
+                context.Output.WriteLine($"{service.ServiceId,-32} {service.Version,-8} {service.Kind.ToLowerInvariant(),-7} {availability,-12} {service.Owner.Display}");
+                context.Output.WriteLine(service.ContractType is { } contract
+                    ? $"  contract: {contract}"
+                    : $"  operations: {string.Join(", ", service.Operations)}");
+            }
+        });
+        return CliExitCodes.Success;
+    }
+
+    public static async Task<int> ListStreamsAsync(CliContext context, IRuntimeClient client)
+    {
+        var response = await client.GetStreamsAsync(context.Cancellation).ConfigureAwait(false);
+        context.Write(response, () =>
+        {
+            if (response.Streams.Count == 0)
+            {
+                context.Output.WriteLine("No streams are registered.");
+            }
+
+            foreach (var stream in response.Streams)
+            {
+                var availability = stream.IsAvailable ? "available" : "completed";
+                context.Output.WriteLine($"{stream.StreamId,-32} {stream.Version,-8} {availability,-12} {stream.Owner.Display}");
+                context.Output.WriteLine($"  items: {stream.ItemType}; subscribers: {stream.SubscriberCount}; written: {stream.Sequence}; buffer: {stream.DefaultCapacity} ({stream.DefaultFullMode})");
+            }
+
+            if (response.SharedContracts.Count > 0)
+            {
+                context.Output.WriteLine("Shared contracts:");
+                foreach (var contract in response.SharedContracts)
+                {
+                    context.Output.WriteLine($"  {contract.Name} {contract.Version} used by {string.Join(", ", contract.Users)}");
+                }
             }
         });
         return CliExitCodes.Success;

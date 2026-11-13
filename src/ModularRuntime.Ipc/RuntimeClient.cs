@@ -39,6 +39,9 @@ public interface IRuntimeClient : IAsyncDisposable
 
     Task<ExtensionsResponse> GetExtensionsAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>Streams and loaded shared contract assemblies (plugin API 0.4).</summary>
+    Task<StreamsResponse> GetStreamsAsync(CancellationToken cancellationToken = default);
+
     Task<LogQueryResponse> QueryLogsAsync(LogQueryRequest request, CancellationToken cancellationToken = default);
 
     Task<LogSubscribeResponse> SubscribeLogsAsync(LogFilterDto? filter, CancellationToken cancellationToken = default);
@@ -209,6 +212,9 @@ public sealed class RuntimeClient : IRuntimeClient
 
     public Task<ExtensionsResponse> GetExtensionsAsync(CancellationToken cancellationToken = default) =>
         _client.RequestAsync<ExtensionsResponse>(IpcOperations.ExtensionsList, null, cancellationToken);
+
+    public Task<StreamsResponse> GetStreamsAsync(CancellationToken cancellationToken = default) =>
+        _client.RequestAsync<StreamsResponse>(IpcOperations.StreamsList, null, cancellationToken);
 
     public Task<LogQueryResponse> QueryLogsAsync(LogQueryRequest request, CancellationToken cancellationToken = default) =>
         _client.RequestAsync<LogQueryResponse>(IpcOperations.LogsQuery, request, cancellationToken);

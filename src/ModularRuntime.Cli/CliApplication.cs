@@ -57,6 +57,7 @@ internal static class CliApplication
           registry info <id>
           services list
           extensions list
+          streams list
           events subscriptions
           logs [--follow] [--level <level>] [--plugin <id>] [--category <name>] [--search <text>] [--limit <n>]
 
@@ -226,6 +227,10 @@ internal static class CliApplication
             case "extensions" when command == "extensions list":
                 Expect(arguments, 2);
                 return await WithClientAsync(context, CliCommands.ListExtensionsAsync).ConfigureAwait(false);
+
+            case "streams" when command == "streams list":
+                Expect(arguments, 2);
+                return await WithClientAsync(context, CliCommands.ListStreamsAsync).ConfigureAwait(false);
 
             case "events" when command == "events subscriptions":
                 Expect(arguments, 2);

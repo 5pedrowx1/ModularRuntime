@@ -141,6 +141,15 @@ internal sealed class DaemonRequestHandler(DaemonHost host) : IIpcRequestHandler
                     [.. extensions.GetExtensionPoints().Select(point => DtoMapper.ToDto(point, extensions.GetContributions(point.ExtensionPointId)))]);
             }
 
+            case IpcOperations.StreamsList:
+            {
+                var version = runtime.StateVersion;
+                return new StreamsResponse(
+                    version,
+                    [.. runtime.Host.Streams.GetStreams().Select(DtoMapper.ToDto)],
+                    [.. runtime.GetSharedContracts().Select(DtoMapper.ToDto)]);
+            }
+
             case IpcOperations.LogsQuery:
             {
                 var request = Read<LogQueryRequest>(payload) ?? new LogQueryRequest();
@@ -303,7 +312,8 @@ internal sealed class DaemonRequestHandler(DaemonHost host) : IIpcRequestHandler
             runtime.Host.Events.GetSubscriptions().Count,
             [.. host.Server.Connections
                 .Where(c => c.ClientName != "probe")
-                .Select(c => new ConnectedClientDto(c.ConnectionId, c.ClientId, c.ClientName, c.ConnectedAt))]);
+                .Select(c => new ConnectedClientDto(c.ConnectionId, c.ClientId, c.ClientName, c.ConnectedAt))],
+            runtime.Host.Streams.GetStreams().Count);
     }
 
     private void EnsureNotStopping()

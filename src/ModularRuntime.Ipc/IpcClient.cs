@@ -188,16 +188,32 @@ public sealed class IpcClient : IAsyncDisposable
         handshakeTimeout.CancelAfter(timeout);
         ClientId = Guid.NewGuid();
 
-        await WriteAsync(
-            new IpcMessage
-            {
-                Type = IpcMessageTypes.Hello,
-                Payload = JsonSerializer.SerializeToElement(new HelloPayload(IpcProtocol.Version, clientName, ClientId), IpcProtocol.JsonOptions),
-            },
-            handshakeTimeout.Token).ConfigureAwait(false);
+        IpcMessage? answer;
+        try
+        {
+            await WriteAsync(
+                new IpcMessage
+                {
+                    Type = IpcMessageTypes.Hello,
+                    Payload = JsonSerializer.SerializeToElement(new HelloPayload(IpcProtocol.Version, clientName, ClientId), IpcProtocol.JsonOptions),
+                },
+                handshakeTimeout.Token).ConfigureAwait(false);
 
-        var answer = await MessageFraming.ReadAsync(_pipe, _maxMessageBytes, handshakeTimeout.Token).ConfigureAwait(false)
-            ?? throw new IpcConnectionLostException("The daemon closed the connection during the handshake.");
+            answer = await MessageFraming.ReadAsync(_pipe, _maxMessageBytes, handshakeTimeout.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            // The handshake's own deadline elapsed (a daemon that accepted the connection but has
+            // not answered yet, for example while it is still starting): the documented outcome
+            // is a timeout, not a cancellation, so callers such as DaemonLauncher.IsRunningAsync
+            // can treat it as "not running yet".
+            throw new TimeoutException($"The daemon did not complete the handshake within {timeout.TotalSeconds:0.##} s.");
+        }
+
+        if (answer is null)
+        {
+            throw new IpcConnectionLostException("The daemon closed the connection during the handshake.");
+        }
 
         if (answer.Type == IpcMessageTypes.Error && answer.Error is { } error)
         {

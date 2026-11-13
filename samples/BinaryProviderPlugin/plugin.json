@@ -1,0 +1,9 @@
+{
+  "id": "com.example.binary.provider",
+  "name": "Binary Service Provider Plugin",
+  "version": "1.0.0",
+  "apiVersion": "0.4",
+  "entryAssembly": "BinaryProviderPlugin.dll",
+  "entryType": "BinaryProviderPlugin.BinaryProviderPlugin",
+  "startOrder": 10
+}

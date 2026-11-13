@@ -186,6 +186,8 @@ internal sealed class FakeClient : IRuntimeClient
 
     public Task<ExtensionsResponse> GetExtensionsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new ExtensionsResponse(1, []));
 
+    public Task<StreamsResponse> GetStreamsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new StreamsResponse(1, [], []));
+
     public Task<LogQueryResponse> QueryLogsAsync(LogQueryRequest request, CancellationToken cancellationToken = default)
     {
         Calls.Add($"queryLogs after={request.AfterSequence}");

@@ -9,7 +9,7 @@
   "identity": "ModularRuntime.Templates.Plugin",
   "groupIdentity": "ModularRuntime.Templates.Plugin",
   "name": "ModularRuntime Plugin",
-  "description": "A ModularRuntime plugin (plugin API @@PLUGIN_API@@): project, plugin.json, and a working entry type. Choose --kind for a lifecycle, event, service, or extension example.",
+  "description": "A ModularRuntime plugin (plugin API @@PLUGIN_API@@): project, plugin.json, and a working entry type. Choose --kind for a lifecycle, event, JSON service, typed service, binary service, stream, or extension example.",
   "shortName": "modularruntime-plugin",
   "sourceName": "ModularRuntimePlugin",
   "preferNameDirectory": true,
@@ -47,8 +47,47 @@
         {
           "choice": "extension",
           "description": "Contributes to a host extension point."
+        },
+        {
+          "choice": "typed-provider",
+          "description": "Provides a typed service (a C# interface from a shared contract assembly) and a typed stream."
+        },
+        {
+          "choice": "typed-consumer",
+          "description": "Calls a typed service through the shared contract assembly and reads its stream."
+        },
+        {
+          "choice": "binary-provider",
+          "description": "Registers a binary service (bytes in, bytes out) with explicit buffer ownership."
+        },
+        {
+          "choice": "stream-publisher",
+          "description": "Creates a JSON stream and writes to it while it runs."
+        },
+        {
+          "choice": "stream-subscriber",
+          "description": "Subscribes to a stream and reads it in the background with backpressure."
         }
       ]
+    },
+    "typed": {
+      "type": "computed",
+      "value": "(kind == \"typed-provider\" || kind == \"typed-consumer\")"
+    },
+    "contractAssembly": {
+      "type": "parameter",
+      "datatype": "text",
+      "description": "Assembly name of the shared contract project (typed-provider, typed-consumer): identifier-safe segments separated by dots, shared by provider and consumer.",
+      "defaultValue": "Shared.Contracts",
+      "replaces": "Shared.Contracts",
+      "fileRename": "Shared.Contracts"
+    },
+    "streamId": {
+      "type": "parameter",
+      "datatype": "text",
+      "description": "Stream ID (stream-publisher, stream-subscriber).",
+      "defaultValue": "sample.ticks",
+      "replaces": "sample.ticks"
     },
     "pluginId": {
       "type": "parameter",
@@ -211,13 +250,54 @@
           ]
         },
         {
+          "condition": "(kind != \"typed-provider\")",
+          "exclude": [
+            "Kinds/TypedProvider.cs"
+          ]
+        },
+        {
+          "condition": "(kind != \"typed-consumer\")",
+          "exclude": [
+            "Kinds/TypedConsumer.cs"
+          ]
+        },
+        {
+          "condition": "(kind != \"binary-provider\")",
+          "exclude": [
+            "Kinds/BinaryProvider.cs"
+          ]
+        },
+        {
+          "condition": "(kind != \"stream-publisher\")",
+          "exclude": [
+            "Kinds/StreamPublisher.cs"
+          ]
+        },
+        {
+          "condition": "(kind != \"stream-subscriber\")",
+          "exclude": [
+            "Kinds/StreamSubscriber.cs"
+          ]
+        },
+        {
+          "condition": "(!typed)",
+          "exclude": [
+            "Contracts/**"
+          ]
+        },
+        {
           "rename": {
             "Kinds/Basic.cs": "ModularRuntimePlugin.cs",
             "Kinds/EventPublisher.cs": "ModularRuntimePlugin.cs",
             "Kinds/EventSubscriber.cs": "ModularRuntimePlugin.cs",
             "Kinds/ServiceProvider.cs": "ModularRuntimePlugin.cs",
             "Kinds/ServiceConsumer.cs": "ModularRuntimePlugin.cs",
-            "Kinds/Extension.cs": "ModularRuntimePlugin.cs"
+            "Kinds/Extension.cs": "ModularRuntimePlugin.cs",
+            "Kinds/TypedProvider.cs": "ModularRuntimePlugin.cs",
+            "Kinds/TypedConsumer.cs": "ModularRuntimePlugin.cs",
+            "Kinds/BinaryProvider.cs": "ModularRuntimePlugin.cs",
+            "Kinds/StreamPublisher.cs": "ModularRuntimePlugin.cs",
+            "Kinds/StreamSubscriber.cs": "ModularRuntimePlugin.cs"
           }
         }
       ]

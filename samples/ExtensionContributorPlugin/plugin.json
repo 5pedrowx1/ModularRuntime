@@ -2,7 +2,7 @@
   "id": "com.example.extensions.contributor",
   "name": "Extension Contributor Plugin",
   "version": "1.0.0",
-  "apiVersion": "0.3",
+  "apiVersion": "0.4",
   "entryAssembly": "ExtensionContributorPlugin.dll",
   "entryType": "ExtensionContributorPlugin.ExtensionContributorPlugin",
   "startOrder": 30

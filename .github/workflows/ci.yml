@@ -62,9 +62,14 @@ jobs:
       - name: Build (warnings are errors)
         run: dotnet build ModularRuntime.sln -c ${{ matrix.configuration }} --no-restore
 
+      # -m:1 runs the test projects one at a time. Without it MSBuild starts the eleven test
+      # hosts at once on the runner's four processors, three of them spawning processes and
+      # builds of their own (Daemon, DevTools, Template); the in-process suites then run tens of
+      # times slower than alone and their bounded waits (15 s) become a lottery. Serial projects
+      # cost about a minute of wall time; tests inside each project still run in parallel.
       - name: Test
         run: >-
-          dotnet test ModularRuntime.sln -c ${{ matrix.configuration }} --no-build
+          dotnet test ModularRuntime.sln -c ${{ matrix.configuration }} --no-build -m:1
           --logger "trx;LogFilePrefix=${{ matrix.configuration }}"
           --results-directory "${{ runner.temp }}/TestResults"
           --blame-hang-timeout 10m

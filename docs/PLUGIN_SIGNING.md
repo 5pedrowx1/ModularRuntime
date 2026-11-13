@@ -88,7 +88,7 @@ Public keys only, by key ID:
   with a strong passphrase that never appears on a command line, backed up offline in two
   places, accessible only to the administrator, and every signing operation is recorded.
 - Signing happens only on the signing machine, on a prepared package that has an approval
-  record ([PLUGIN_SUBMISSION_POLICY.md](PLUGIN_SUBMISSION_POLICY.md)); building and testing
+  record ([PUBLISHING.md](PUBLISHING.md)); building and testing
   happen elsewhere and never see the key.
 
 ## Producing and verifying signatures

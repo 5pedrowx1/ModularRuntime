@@ -5,6 +5,7 @@ bin/
 obj/
 artifacts/
 TestResults/
+BenchmarkDotNet.Artifacts/
 *.nupkg
 *.snupkg
 

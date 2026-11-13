@@ -196,7 +196,7 @@ public sealed class ValidateTests : IDisposable
         var help = await PluginProjectFixture.RunAsync("--help");
         Assert.Equal(0, help.ExitCode);
         Assert.Contains("prepare-submission", help.Output, StringComparison.Ordinal);
-        Assert.Equal("0.6.0", (await PluginProjectFixture.RunAsync("--version")).Output.Trim());
+        Assert.Equal("0.7.0", (await PluginProjectFixture.RunAsync("--version")).Output.Trim());
 
         var noProject = await PluginProjectFixture.RunAsync("validate", "--project", Path.Combine(_fixture.Root, "nowhere"));
         Assert.Equal(1, noProject.ExitCode);

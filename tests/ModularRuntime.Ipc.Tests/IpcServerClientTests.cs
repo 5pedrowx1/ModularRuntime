@@ -404,6 +404,35 @@ public sealed class IpcServerClientTests : IAsyncLifetime
             IpcClient.ConnectAsync($"ModularRuntime.missing.{Guid.NewGuid():N}", "test", TimeSpan.FromMilliseconds(300)));
     }
 
+    /// <summary>
+    /// A daemon that accepts the connection but has not answered the handshake yet (for example
+    /// one still starting on a busy machine) is a timeout, not a cancellation: the client's own
+    /// deadline must not surface as <see cref="OperationCanceledException"/>, and the launcher's
+    /// probe must report "not running" instead of throwing. A caller's own cancellation still
+    /// surfaces as such.
+    /// </summary>
+    [Fact]
+    public async Task AServerThatAcceptsButNeverAnswers_TimesOutTheHandshake_AndTheProbeReportsNotRunning()
+    {
+        var profile = RuntimeProfile.Resolve(Path.Combine(Path.GetTempPath(), "ModularRuntime.ipc-tests", Guid.NewGuid().ToString("N")));
+        using var silent = PipeSecurityPolicy.CreateServerStream(profile.PipeName, firstInstance: true, maxInstances: 1);
+
+        var accepted = silent.WaitForConnectionAsync();
+        await Assert.ThrowsAsync<TimeoutException>(() => IpcClient.ConnectAsync(profile.PipeName, "test", TimeSpan.FromMilliseconds(300)));
+        await accepted.WaitAsync(Timeout);
+        silent.Disconnect();
+
+        accepted = silent.WaitForConnectionAsync();
+        Assert.False(await DaemonLauncher.IsRunningAsync(profile, TimeSpan.FromMilliseconds(300)));
+        await accepted.WaitAsync(Timeout);
+        silent.Disconnect();
+
+        accepted = silent.WaitForConnectionAsync();
+        using var caller = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => IpcClient.ConnectAsync(profile.PipeName, "test", Timeout, cancellationToken: caller.Token));
+        await accepted.WaitAsync(Timeout);
+    }
+
     private static async Task WaitUntilAsync(Func<bool> condition)
     {
         var deadline = DateTime.UtcNow + Timeout;

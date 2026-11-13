@@ -191,6 +191,49 @@ public sealed partial class EndToEndTests(ExternalWorkspace workspace)
         Assert.Equal(2, instances.Distinct().Count());
     }
 
+    // I — typed services (plugin API 0.4): two generated plugins share one contract assembly
+    // (declared in both manifests) and communicate through a runtime proxy; the daemon exposes the
+    // loaded shared contract and the typed stream over IPC (CLI "streams list").
+    [Fact]
+    public async Task I_GeneratedTypedProviderAndConsumer_ShareOneContractAssembly_InTheDaemon()
+    {
+        var parent = Scenario("I");
+        var provider = await CreateAndPackAsync(parent, "TypedProvider", "typed-provider", "--service-id", "e2e.counter", "--stream-id", "e2e.ticks", "--contract-assembly", "E2e.Shared.Contracts");
+        var consumer = await CreateAndPackAsync(parent, "TypedConsumer", "typed-consumer", "--service-id", "e2e.counter", "--stream-id", "e2e.ticks", "--contract-assembly", "E2e.Shared.Contracts");
+        using (var archive = ZipFile.OpenRead(provider))
+        {
+            Assert.Contains(archive.Entries, e => e.FullName == "E2e.Shared.Contracts.dll");
+        }
+
+        await using var daemon = await DaemonSession.StartAsync(workspace, "I");
+        await daemon.CliOkAsync("plugins", "install-zip", provider, "--allow-unverified");
+        await daemon.CliOkAsync("plugins", "install-zip", consumer, "--allow-unverified");
+        await daemon.CliOkAsync("plugins", "start", "com.example.typedprovider");
+        await daemon.CliOkAsync("plugins", "start", "com.example.typedconsumer");
+
+        await daemon.WaitForLogAsync("Typed service 'e2e.counter' answered: 1", LogTimeout);
+        var services = await daemon.CliOkAsync("services", "list");
+        Assert.Contains("e2e.counter", services, StringComparison.Ordinal);
+        Assert.Contains("typed", services, StringComparison.Ordinal);
+        Assert.Contains("Shared.Contracts.ICounterService, E2e.Shared.Contracts", services, StringComparison.Ordinal);
+        var streams = await daemon.CliOkAsync("streams", "list");
+        Assert.Contains("e2e.ticks", streams, StringComparison.Ordinal);
+        Assert.Contains("E2e.Shared.Contracts 1.0.0.0 used by com.example.typedconsumer, com.example.typedprovider", streams, StringComparison.Ordinal);
+
+        // Stopping the provider invalidates the consumer's proxy; the consumer keeps running and reports it.
+        await daemon.CliOkAsync("plugins", "stop", "com.example.typedprovider");
+        await daemon.WaitForLogAsync("Typed service 'e2e.counter' call failed [service_removed]", LogTimeout);
+        Assert.Contains("used by com.example.typedconsumer", await daemon.CliOkAsync("streams", "list"), StringComparison.Ordinal);
+        Assert.Contains("Running", await daemon.CliOkAsync("plugins", "list"), StringComparison.Ordinal);
+        await daemon.CliOkAsync("plugins", "stop", "com.example.typedconsumer");
+        Assert.DoesNotContain("Shared contracts:", await daemon.CliOkAsync("streams", "list"), StringComparison.Ordinal);
+
+        // Removal waits for unload: the shared contract context must not pin the plugins' files.
+        Assert.Contains("completed", await daemon.CliOkAsync("plugins", "remove", "com.example.typedprovider", "--yes"), StringComparison.Ordinal);
+        Assert.Contains("completed", await daemon.CliOkAsync("plugins", "remove", "com.example.typedconsumer", "--yes"), StringComparison.Ordinal);
+        Assert.DoesNotContain("has not unloaded", daemon.ReadLogs(), StringComparison.Ordinal);
+    }
+
     private static int CountOf(string text, string value) =>
         (text.Length - text.Replace(value, string.Empty, StringComparison.Ordinal).Length) / value.Length;
 

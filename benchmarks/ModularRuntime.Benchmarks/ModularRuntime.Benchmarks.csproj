@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Reproducible benchmarks of the communication mechanisms (JSON, typed, binary, events, streams).
+    Not part of the test suite: run with
+      dotnet run (Release configuration, this project); see docs/BENCHMARKS.md for the exact command
+    Results are written under BenchmarkDotNet.Artifacts (ignored by Git); docs/BENCHMARKS.md
+    records the methodology and a measured run.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>false</IsTestProject>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <TieredPGO>true</TieredPGO>
+    <!-- Benchmark classes are public instance members by BenchmarkDotNet's design. -->
+    <NoWarn>$(NoWarn);CA1822;CA1515;CA1001;CA1812;CA1816;CA1859;CA2007</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ModularRuntime.Contracts\ModularRuntime.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\ModularRuntime.Engine\ModularRuntime.Engine.csproj" />
+    <ProjectReference Include="..\..\src\ModularRuntime.Sdk\ModularRuntime.Sdk.csproj" />
+  </ItemGroup>
+
+</Project>

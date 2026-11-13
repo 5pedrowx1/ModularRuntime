@@ -33,7 +33,8 @@ public sealed record RuntimeStatusDto(
     int ServiceCount,
     int ExtensionPointCount,
     int SubscriptionCount,
-    IReadOnlyList<ConnectedClientDto> Clients);
+    IReadOnlyList<ConnectedClientDto> Clients,
+    int StreamCount = 0);
 
 public sealed record ErrorInfoDto(
     string Code,
@@ -99,6 +100,8 @@ public sealed record EventSubscriptionsResponse(
     IReadOnlyList<SubscriptionDto> Subscriptions,
     IReadOnlyList<TopicStatsDto> Topics);
 
+/// <param name="Kind"><c>Json</c>, <c>Binary</c>, or <c>Typed</c> (plugin API 0.4).</param>
+/// <param name="ContractType">For typed services, the contract interface (type, assembly, version) as text.</param>
 public sealed record ServiceDto(
     Guid RegistrationId,
     string ServiceId,
@@ -108,9 +111,32 @@ public sealed record ServiceDto(
     IReadOnlyDictionary<string, string> Metadata,
     OwnerDto Owner,
     bool IsAvailable,
-    DateTimeOffset RegisteredAt);
+    DateTimeOffset RegisteredAt,
+    string Kind = "Json",
+    string? ContractType = null);
 
 public sealed record ServicesResponse(long StateVersion, IReadOnlyList<ServiceDto> Services);
+
+/// <summary>A stream (plugin API 0.4): one producer, buffered delivery to any number of subscribers.</summary>
+public sealed record StreamDto(
+    Guid RegistrationId,
+    string StreamId,
+    string Name,
+    string Version,
+    string ItemType,
+    IReadOnlyDictionary<string, string> Metadata,
+    OwnerDto Owner,
+    bool IsAvailable,
+    int SubscriberCount,
+    long Sequence,
+    int DefaultCapacity,
+    string DefaultFullMode,
+    DateTimeOffset CreatedAt);
+
+/// <summary>A contract assembly loaded into a shared context for typed services and streams.</summary>
+public sealed record SharedContractDto(string Name, string Version, IReadOnlyList<string> Users);
+
+public sealed record StreamsResponse(long StateVersion, IReadOnlyList<StreamDto> Streams, IReadOnlyList<SharedContractDto> SharedContracts);
 
 public sealed record ContributionDto(
     Guid RegistrationId,

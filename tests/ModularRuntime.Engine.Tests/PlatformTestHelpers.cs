@@ -62,3 +62,12 @@ internal static class PlatformTestHelpers
         return exception;
     }
 }
+
+/// <summary>
+/// A shared-type policy that marks the given types as plugin-private. Everything in the test
+/// assembly lives in the default load context, so this is how tests obtain "non-shared" types.
+/// </summary>
+internal sealed class ExcludingPolicy(params Type[] excluded) : ISharedTypePolicy
+{
+    public bool IsShared(Type type) => !excluded.Contains(type);
+}

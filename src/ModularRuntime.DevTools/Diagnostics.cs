@@ -33,6 +33,8 @@ internal static class DiagnosticCodes
     public const string UnsafePath = "unsafe_path";
     public const string PathCollision = "path_collision";
     public const string PackageLimits = "package_limits";
+    public const string SharedContractDependency = "shared_contract_dependency";
+    public const string SharedContractUnused = "shared_contract_unused";
 }
 
 internal sealed class ValidationReport

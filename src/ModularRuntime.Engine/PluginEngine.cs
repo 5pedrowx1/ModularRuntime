@@ -44,12 +44,19 @@ public sealed class PluginEngine : IAsyncDisposable
     private Task? _disposeTask;
     private int _shutdownStarted;
 
-    public PluginEngine(IRuntimeLogger? logger = null, RuntimeLimits? limits = null)
+    /// <param name="logger">Runtime logger; defaults to a no-op logger.</param>
+    /// <param name="limits">Platform limits; defaults to <see cref="RuntimeLimits"/>.</param>
+    /// <param name="sharedTypePolicy">
+    /// Decides which types may cross typed boundaries (typed services, streams). Defaults to
+    /// <see cref="DefaultSharedTypePolicy"/>; the loader supplies a policy that knows its shared
+    /// contract contexts.
+    /// </param>
+    public PluginEngine(IRuntimeLogger? logger = null, RuntimeLimits? limits = null, ISharedTypePolicy? sharedTypePolicy = null)
     {
         limits ??= new RuntimeLimits();
         limits.Validate();
         _logger = logger ?? NullRuntimeLogger.Instance;
-        _core = new RuntimeCore(_logger, limits);
+        _core = new RuntimeCore(_logger, limits, sharedTypePolicy ?? DefaultSharedTypePolicy.Instance);
         _hostScope = _core.CreateHostScope();
         _host = new RuntimeScopeFacade(_core, _hostScope);
     }
@@ -58,6 +65,8 @@ public sealed class PluginEngine : IAsyncDisposable
     public Guid RuntimeId => _core.RuntimeId;
 
     public RuntimeLimits Limits => _core.Limits;
+
+    internal SharedTypeAnalyzer SharedTypeAnalyzer => _core.SharedTypes.Analyzer;
 
     /// <summary>
     /// The host's scope: lets the hosting application publish and subscribe to events, provide

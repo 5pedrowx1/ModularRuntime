@@ -17,16 +17,16 @@ ModularRuntime is pre-release and its packages are not on nuget.org. Build the l
 from a ModularRuntime checkout, or use the folder you received:
 
 ```powershell
-./scripts/pack-sdk.ps1                       # writes artifacts\nuget\*.nupkg (version 0.6.0)
+./scripts/pack-sdk.ps1                       # writes artifacts\nuget\*.nupkg (version 0.7.0)
 $feed = (Resolve-Path ./artifacts/nuget).Path
 
-dotnet new install "$feed\ModularRuntime.Templates.0.6.0.nupkg"
-dotnet tool install --global ModularRuntime.DevTools --version 0.6.0 --add-source $feed
+dotnet new install "$feed\ModularRuntime.Templates.0.7.0.nupkg"
+dotnet tool install --global ModularRuntime.DevTools --version 0.7.0 --add-source $feed
 ```
 
-Your plugin projects restore `ModularRuntime.Sdk` from that folder. Add it as a NuGet source once:
-`dotnet nuget add source $feed --name modularruntime-local`, or put a `nuget.config` next to
-your projects.
+Your plugin projects restore `ModularRuntime.Sdk` from that folder. Add it as a NuGet source once
+(`dotnet nuget add source $feed --name modularruntime-local`) or put a `nuget.config` next to your
+projects.
 
 ## 3. Create a project
 
@@ -37,16 +37,20 @@ cd MyFirstPlugin
 
 ```text
 MyFirstPlugin/
-├── MyFirstPlugin.csproj   net10.0, EnableDynamicLoading, PackageReference ModularRuntime.Sdk 0.6.0
+├── MyFirstPlugin.csproj   net10.0, EnableDynamicLoading, PackageReference ModularRuntime.Sdk 0.7.0
 ├── MyFirstPlugin.cs       the entry type (IPlugin)
-├── plugin.json            id com.example.myfirstplugin, apiVersion 0.3, entry assembly and type
+├── plugin.json            id com.example.myfirstplugin, apiVersion 0.4, entry assembly and type
 ├── README.md
 └── .gitignore
 ```
 
-Options: `--kind basic|event-publisher|event-subscriber|service-provider|service-consumer|extension`,
-`--plugin-id com.contoso.reports` (default `com.example.<project name>`), `--plugin-name`,
-`--plugin-author`, `--topic`, `--service-id`, `--extension-point`. See `dotnet new modularruntime-plugin -h`.
+`--kind` chooses what the generated plugin demonstrates: `basic` (default), `event-publisher`,
+`event-subscriber`, `service-provider`, `service-consumer`, `extension`, `typed-provider`,
+`typed-consumer`, `binary-provider`, `stream-publisher`, `stream-subscriber`. The typed kinds add a
+`Contracts/` project (the shared contract assembly, declared in `plugin.json`); give the provider
+and its consumers the same `--contract-assembly` and `--service-id`. Other options: `--plugin-id`,
+`--plugin-name`, `--plugin-author`, `--topic`, `--service-id`, `--stream-id`, `--extension-point`.
+See `dotnet new modularruntime-plugin -h` and [SDK.md](SDK.md#templates).
 
 ## 4. Build
 
@@ -61,9 +65,9 @@ dotnet modularruntime validate --build
 ```
 
 `validate` checks the project and `plugin.json` with the same rules as the runtime (ID, version,
-API version, entry assembly and type, target framework, references, dependencies, path rules).
-It reads the built assembly as metadata only: no plugin code runs. Errors have stable codes
-([PLUGIN_PACKAGING.md](PLUGIN_PACKAGING.md#diagnostics)).
+API version, entry assembly and type, target framework, references, dependencies, shared
+contracts, path rules). It reads the built assembly as metadata only: no plugin code runs. Errors
+have stable codes ([SDK.md](SDK.md#validate)).
 
 ## 6. Pack
 
@@ -72,8 +76,9 @@ dotnet modularruntime pack
 ```
 
 The tool builds with `dotnet build -c Release` and writes
-`bin\Release\modularruntime\com.example.myfirstplugin-1.0.0.zip`. The package holds your plugin's
-files, `plugin.json`, and `integrity.json` (the SHA-256 of every file), and **no signature**.
+`bin\Release\modularruntime\com.example.myfirstplugin-1.0.0.zip`: your plugin's files (including
+shared contract assemblies), `plugin.json`, and `integrity.json` (the SHA-256 of every file), and
+**no signature**.
 
 ```powershell
 dotnet modularruntime inspect bin\Release\modularruntime\com.example.myfirstplugin-1.0.0.zip
@@ -100,6 +105,7 @@ Select *Start* on the Plugins page, or run `modularruntime plugins start com.exa
 
 Open the **Logs** page, or run `modularruntime logs --plugin com.example.myfirstplugin`. The basic
 plugin writes `MyFirstPlugin 1.0.0 started (plugin 'com.example.myfirstplugin', instance …)`.
+`modularruntime services list` and `streams list` show what your plugin registered.
 
 ## 10. Stop and restart
 
@@ -113,9 +119,17 @@ modularruntime plugins restart com.example.myfirstplugin
 
 Every start creates a new instance in a new load context, after the package is verified again.
 
+## 11. Talk to another plugin
+
+Generate a second plugin with a matching kind (for example `--kind typed-consumer` next to a
+`--kind typed-provider`, both with `--service-id contoso.counter --contract-assembly Contoso.Contracts`),
+pack and install both, start the provider, then the consumer, and watch the logs: the consumer
+reports `Typed service 'contoso.counter' answered: 1`, and `service_removed` after you stop the
+provider. [COMMUNICATION.md](COMMUNICATION.md) explains every mechanism.
+
 ## Next
 
-- Change the code, run `dotnet modularruntime pack` again, and update with *Install from ZIP*.
-  A running version must be stopped (the app asks; with the CLI pass `--stop-if-running`).
-- Learn the API: [PLUGIN_API.md](PLUGIN_API.md).
-- Publish officially: [PLUGIN_SUBMISSION_GUIDE.md](PLUGIN_SUBMISSION_GUIDE.md).
+- Change the code, run `dotnet modularruntime pack` again, and update with *Install from ZIP*. A
+  running version must be stopped (the app asks; with the CLI pass `--stop-if-running`).
+- Learn the API: [PLUGIN_DEVELOPMENT.md](PLUGIN_DEVELOPMENT.md).
+- Publish officially: [PUBLISHING.md](PUBLISHING.md).

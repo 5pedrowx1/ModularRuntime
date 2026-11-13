@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <AssemblyName>Shared.Contracts</AssemblyName>
+    <RootNamespace>Shared.Contracts</RootNamespace>
+    <!--
+      A shared contract assembly: provider and consumer plugins reference this same project (or the
+      same NuGet package) and declare "Shared.Contracts" in plugin.json ("sharedContracts"). The
+      runtime loads it once, so the interface below has one identity across those plugins.
+      Reference nothing but the framework (and ModularRuntime.Contracts if you need JsonPayload).
+      Same major version = compatible: bump the major for breaking changes.
+    -->
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </PropertyGroup>
+
+</Project>

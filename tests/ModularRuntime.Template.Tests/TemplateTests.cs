@@ -6,7 +6,7 @@ namespace ModularRuntime.Template.Tests;
 [Collection(ExternalWorkspaceGroup.Name)]
 public sealed class TemplateTests(ExternalWorkspace workspace)
 {
-    public static TheoryData<string> Kinds { get; } = ["basic", "event-publisher", "event-subscriber", "service-provider", "service-consumer", "extension"];
+    public static TheoryData<string> Kinds { get; } = ["basic", "event-publisher", "event-subscriber", "service-provider", "service-consumer", "extension", "typed-provider", "typed-consumer", "binary-provider", "stream-publisher", "stream-subscriber"];
 
     private static JsonObject Manifest(string project) => JsonNode.Parse(File.ReadAllText(Path.Combine(project, "plugin.json")))!.AsObject();
 
@@ -35,7 +35,20 @@ public sealed class TemplateTests(ExternalWorkspace workspace)
         var csproj = await File.ReadAllTextAsync(Path.Combine(project, name + ".csproj"));
         Assert.Contains($"<PackageReference Include=\"ModularRuntime.Sdk\" Version=\"{ExternalWorkspace.Version}\" />", csproj, StringComparison.Ordinal);
         Assert.DoesNotContain("ModularRuntime.Engine\"", csproj, StringComparison.Ordinal);
-        Assert.DoesNotContain("ProjectReference", csproj, StringComparison.Ordinal);
+        var typed = kind is "typed-provider" or "typed-consumer";
+        if (typed)
+        {
+            // Typed kinds ship a shared contract project next to the plugin and declare it in plugin.json.
+            Assert.Contains("<ProjectReference Include=\"Contracts\\Shared.Contracts.csproj\" />", csproj, StringComparison.Ordinal);
+            Assert.True(File.Exists(Path.Combine(project, "Contracts", "Shared.Contracts.csproj")));
+            Assert.Equal(["Shared.Contracts"], Manifest(project)["sharedContracts"]!.AsArray().Select(n => n!.GetValue<string>()));
+        }
+        else
+        {
+            Assert.DoesNotContain("ProjectReference", csproj, StringComparison.Ordinal);
+            Assert.False(Directory.Exists(Path.Combine(project, "Contracts")));
+            Assert.Null(Manifest(project)["sharedContracts"]);
+        }
         Assert.Contains($"public sealed class {name} : IPlugin", await File.ReadAllTextAsync(Path.Combine(project, name + ".cs")), StringComparison.Ordinal);
         var manifest = Manifest(project);
         Assert.Equal("com.example." + name.ToLowerInvariant(), manifest["id"]!.GetValue<string>());

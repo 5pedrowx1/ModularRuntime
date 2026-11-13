@@ -60,7 +60,28 @@ internal static class DtoMapper
             service.Metadata,
             ToDto(service.Owner),
             service.IsAvailable,
-            service.RegisteredAt);
+            service.RegisteredAt,
+            service.Kind.ToString(),
+            service.ContractTypeName);
+
+    public static StreamDto ToDto(StreamDescriptor stream) =>
+        new(
+            stream.RegistrationId,
+            stream.StreamId,
+            stream.Name,
+            stream.Version.ToString(),
+            stream.ItemTypeName,
+            stream.Metadata,
+            ToDto(stream.Owner),
+            stream.IsAvailable,
+            stream.SubscriberCount,
+            stream.Sequence,
+            stream.DefaultCapacity,
+            stream.DefaultFullMode.ToString(),
+            stream.CreatedAt);
+
+    public static SharedContractDto ToDto(Loader.SharedContractInfo contract) =>
+        new(contract.Name, contract.Version.ToString(), [.. contract.Users.Select(u => u.Value)]);
 
     public static ExtensionPointDto ToDto(ExtensionPointDescriptor point, IReadOnlyList<ExtensionContributionDescriptor> contributions) =>
         new(

@@ -103,8 +103,69 @@ internal static class PluginValidator
 
         AssemblyMetadataInspector.Inspect(candidate.EntryAssemblyPath, candidate.Descriptor.EntryType, report);
         CheckDependencies(directory, Path.GetFileNameWithoutExtension(candidate.EntryAssemblyPath), report, sharedAssembliesExcluded);
+        CheckSharedContracts(directory, candidate, report);
         CheckPaths(directory, report);
         return candidate;
+    }
+
+    /// <summary>
+    /// Shared contract assemblies (plugin.json "sharedContracts") follow the loader's rules: they
+    /// exist next to the entry assembly (the Loader reports a missing one), reference only the
+    /// framework, ModularRuntime.Contracts, and other declared shared contracts, and are actually
+    /// referenced by the entry assembly.
+    /// </summary>
+    private static void CheckSharedContracts(string directory, PluginCandidate candidate, ValidationReport report)
+    {
+        var declared = candidate.Descriptor.SharedContracts;
+        if (declared.Count == 0)
+        {
+            return;
+        }
+
+        IReadOnlyList<System.Reflection.AssemblyName> entryReferences;
+        try
+        {
+            entryReferences = SharedContractRules.ReadIdentity(candidate.EntryAssemblyPath).References;
+        }
+        catch (Exception exception) when (exception is BadImageFormatException or IOException)
+        {
+            return; // already reported by the inspector
+        }
+
+        foreach (var name in declared)
+        {
+            var path = Path.Combine(directory, name + ".dll");
+            if (!File.Exists(path))
+            {
+                continue; // reported by the loader's manifest rules
+            }
+
+            if (!entryReferences.Any(reference => string.Equals(reference.Name, name, StringComparison.OrdinalIgnoreCase)))
+            {
+                report.Warning(DiagnosticCodes.SharedContractUnused, $"plugin.json declares shared contract '{name}', but the entry assembly does not reference it.");
+            }
+
+            try
+            {
+                var (actualName, _, references) = SharedContractRules.ReadIdentity(path);
+                if (!string.Equals(actualName, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    report.Error(DiagnosticCodes.SharedContractDependency, $"'{name}.dll' contains assembly '{actualName}'; a shared contract file must carry the declared assembly name.");
+                }
+
+                foreach (var reference in references)
+                {
+                    if (!SharedContractRules.IsAllowedReference(reference.Name ?? string.Empty, declared))
+                    {
+                        report.Error(DiagnosticCodes.SharedContractDependency, $"Shared contract '{name}' references '{reference.Name}', which is neither the framework, ModularRuntime.Contracts, nor a declared shared contract. The runtime refuses to load it (shared_contract_dependency).");
+                    }
+                }
+            }
+            catch (Exception exception) when (exception is BadImageFormatException or IOException)
+            {
+                report.Error(DiagnosticCodes.SharedContractDependency, $"Shared contract '{name}.dll' is not a valid assembly: {exception.Message}");
+            }
+        }
     }
 
     private static void CheckDependencies(string directory, string assemblyName, ValidationReport report, bool sharedAssembliesExcluded)

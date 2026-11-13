@@ -16,4 +16,7 @@ public static class PluginDiscoveryErrorCodes
     public const string EntryAssemblyPathInvalid = "entry_assembly_path_invalid";
     public const string EntryAssemblyMissing = "entry_assembly_missing";
     public const string DuplicatePluginId = "duplicate_plugin_id";
+
+    /// <summary>A manifest declares a shared contract whose assembly file is not in the installation.</summary>
+    public const string SharedContractMissing = "shared_contract_missing";
 }

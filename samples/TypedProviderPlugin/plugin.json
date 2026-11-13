@@ -1,0 +1,10 @@
+{
+  "id": "com.example.typed.provider",
+  "name": "Typed Service Provider Plugin",
+  "version": "1.0.0",
+  "apiVersion": "0.4",
+  "entryAssembly": "TypedProviderPlugin.dll",
+  "entryType": "TypedProviderPlugin.TypedProviderPlugin",
+  "startOrder": 10,
+  "sharedContracts": ["Example.Telemetry.Contracts"]
+}

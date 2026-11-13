@@ -2,7 +2,7 @@
   "id": "com.example.services.consumer",
   "name": "Service Consumer Plugin",
   "version": "1.0.0",
-  "apiVersion": "0.3",
+  "apiVersion": "0.4",
   "entryAssembly": "ServiceConsumerPlugin.dll",
   "entryType": "ServiceConsumerPlugin.ServiceConsumerPlugin",
   "startOrder": 20

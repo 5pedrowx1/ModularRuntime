@@ -1,4 +1,15 @@
 {
   "schemaVersion": 1,
-  "keys": []
+  "keys": [
+    {
+      "keyId": "modularruntime-packages-2026-1",
+      "algorithm": "ECDSA-P256-SHA256",
+      "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEqkGTxWjXfL4m0\u002BcEncHP77t1Rjt7hvpwLZb29pfeFtVMfK3Bj4S4rYCwiCrAZZYIMksre/iGqCSofyJoq3eNLA==",
+      "purposes": [
+        "packages"
+      ],
+      "status": "active",
+      "test": false
+    }
+  ]
 }

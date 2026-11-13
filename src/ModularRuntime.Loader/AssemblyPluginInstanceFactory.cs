@@ -16,18 +16,26 @@ public sealed class AssemblyPluginInstanceFactory : IPluginInstanceFactory
     private readonly IPluginLoadVerifier? _verifier;
     private IDisposable? _verificationLease;
     private readonly object _sync = new();
+    private readonly SharedContractRegistry? _sharedContracts;
+    private SharedContractLeases? _contractLeases;
     private PluginLoadContext? _loadContext;
     private WeakReference? _loadContextReference;
     private bool _consumed;
     private bool _released;
 
     public AssemblyPluginInstanceFactory(PluginCandidate candidate, IRuntimeLogger logger, IPluginLoadVerifier? verifier = null)
+        : this(candidate, logger, verifier, null)
+    {
+    }
+
+    internal AssemblyPluginInstanceFactory(PluginCandidate candidate, IRuntimeLogger logger, IPluginLoadVerifier? verifier, SharedContractRegistry? sharedContracts)
     {
         ArgumentNullException.ThrowIfNull(candidate);
         ArgumentNullException.ThrowIfNull(logger);
         _candidate = candidate;
         _logger = logger;
         _verifier = verifier;
+        _sharedContracts = sharedContracts;
     }
 
     public ValueTask<IPlugin> CreateAsync(
@@ -93,7 +101,21 @@ public sealed class AssemblyPluginInstanceFactory : IPluginInstanceFactory
             PluginLoadContext? loadContext = null;
             try
             {
-                loadContext = new PluginLoadContext(descriptor.Id, _candidate.EntryAssemblyPath);
+                // Shared contracts come from this plugin's verified files and are held until release.
+                if (_candidate.Descriptor.SharedContracts.Count > 0)
+                {
+                    if (_sharedContracts is null)
+                    {
+                        throw new PluginLoadException(
+                            PluginLoadErrorCodes.SharedContractMissing,
+                            descriptor.Id,
+                            $"Plugin '{descriptor.Id}' declares shared contracts, but this factory was created without a shared contract registry (use PluginLoader.CreateInstanceFactory).");
+                    }
+
+                    _contractLeases = _sharedContracts.Acquire(_candidate);
+                }
+
+                loadContext = new PluginLoadContext(descriptor.Id, _candidate.EntryAssemblyPath, _contractLeases?.Assemblies);
                 _loadContext = loadContext;
                 _loadContextReference = new WeakReference(loadContext);
 
@@ -226,6 +248,7 @@ public sealed class AssemblyPluginInstanceFactory : IPluginInstanceFactory
     {
         PluginLoadContext? loadContext;
         IDisposable? lease;
+        SharedContractLeases? contracts;
         lock (_sync)
         {
             if (_released)
@@ -238,15 +261,19 @@ public sealed class AssemblyPluginInstanceFactory : IPluginInstanceFactory
             _loadContext = null;
             lease = _verificationLease;
             _verificationLease = null;
+            contracts = _contractLeases;
+            _contractLeases = null;
         }
 
         lease?.Dispose();
         if (loadContext is null)
         {
+            contracts?.Release(_candidate.Descriptor.Id);
             return ValueTask.CompletedTask;
         }
 
         loadContext.Unload();
+        contracts?.Release(_candidate.Descriptor.Id);
         Log(
             LogLevel.Debug,
             $"Unload requested for plugin '{_candidate.Descriptor.Id}' load context. " +
@@ -313,21 +340,23 @@ public sealed class AssemblyPluginInstanceFactory : IPluginInstanceFactory
 
     private void ReleaseContext(PluginLoadContext? loadContext)
     {
-        // A failed load also gives up the verification lease (called while holding _sync).
+        // A failed load also gives up the verification lease and the shared contracts (called while holding _sync).
         _verificationLease?.Dispose();
         _verificationLease = null;
 
-        if (loadContext is null)
+        if (loadContext is not null)
         {
-            return;
+            if (ReferenceEquals(_loadContext, loadContext))
+            {
+                _loadContext = null;
+            }
+
+            loadContext.Unload();
         }
 
-        if (ReferenceEquals(_loadContext, loadContext))
-        {
-            _loadContext = null;
-        }
-
-        loadContext.Unload();
+        var contracts = _contractLeases;
+        _contractLeases = null;
+        contracts?.Release(_candidate.Descriptor.Id);
     }
 
     private void Log(

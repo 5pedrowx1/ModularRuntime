@@ -5,6 +5,9 @@
   "apiVersion": "@@PLUGIN_API@@",
   "entryAssembly": "ModularRuntimePlugin.dll",
   "entryType": "ModularRuntimePlugin.ModularRuntimePlugin",
+  //#if (typed)
+  "sharedContracts": ["Shared.Contracts"],
+  //#endif
   "author": "Plugin Author Name",
   "description": "A ModularRuntime plugin."
 }

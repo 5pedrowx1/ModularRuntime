@@ -102,6 +102,22 @@ internal static class Validation
         return Array.AsReadOnly(operations.ToArray());
     }
 
+    /// <summary>A per-service byte limit: positive, never above the runtime limit (which is the default).</summary>
+    public static int ClampLimit(int? requested, int runtimeLimit, string parameterName)
+    {
+        if (requested is null)
+        {
+            return runtimeLimit;
+        }
+
+        if (requested.Value <= 0)
+        {
+            throw new ArgumentException("Byte limits must be positive.", parameterName);
+        }
+
+        return Math.Min(requested.Value, runtimeLimit);
+    }
+
     public static void ValidateVersion(Version? version, string parameterName)
     {
         ArgumentNullException.ThrowIfNull(version, parameterName);

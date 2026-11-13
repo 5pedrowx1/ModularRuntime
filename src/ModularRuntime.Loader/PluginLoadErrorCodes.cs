@@ -19,4 +19,10 @@ public static class PluginLoadErrorCodes
 
     /// <summary>The installation was revoked (by the signed catalog) and must not be loaded.</summary>
     public const string InstallationRevoked = "installation_revoked";
+
+    // Shared contract assemblies (plugin API 0.4)
+    public const string SharedContractMissing = "shared_contract_missing";
+    public const string SharedContractInvalid = "shared_contract_invalid";
+    public const string SharedContractVersionConflict = "shared_contract_version_conflict";
+    public const string SharedContractDependency = "shared_contract_dependency";
 }

@@ -27,15 +27,17 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1.3*" />
                         <ColumnDefinition Width="70" />
+                        <ColumnDefinition Width="60" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="1.2*" />
                         <ColumnDefinition Width="100" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="SERVICE" Style="{StaticResource CaptionText}" />
                     <TextBlock Grid.Column="1" Text="VERSION" Style="{StaticResource CaptionText}" />
-                    <TextBlock Grid.Column="2" Text="OPERATIONS" Style="{StaticResource CaptionText}" />
-                    <TextBlock Grid.Column="3" Text="PROVIDER" Style="{StaticResource CaptionText}" />
-                    <TextBlock Grid.Column="4" Text="STATUS" Style="{StaticResource CaptionText}" />
+                    <TextBlock Grid.Column="2" Text="KIND" Style="{StaticResource CaptionText}" />
+                    <TextBlock Grid.Column="3" Text="OPERATIONS / CONTRACT" Style="{StaticResource CaptionText}" />
+                    <TextBlock Grid.Column="4" Text="PROVIDER" Style="{StaticResource CaptionText}" />
+                    <TextBlock Grid.Column="5" Text="STATUS" Style="{StaticResource CaptionText}" />
                 </Grid>
                 <ListBox Style="{StaticResource RowList}" ItemsSource="{Binding Items}" AutomationProperties.Name="Services">
                     <ListBox.ItemTemplate>
@@ -44,6 +46,7 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="1.3*" />
                                     <ColumnDefinition Width="70" />
+                                    <ColumnDefinition Width="60" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="1.2*" />
                                     <ColumnDefinition Width="100" />
@@ -53,10 +56,13 @@
                                     <TextBlock Text="{Binding Name}" Style="{StaticResource CaptionText}" Margin="0,2,0,0" />
                                 </StackPanel>
                                 <TextBlock Grid.Column="1" Text="{Binding Version}" Style="{StaticResource SecondaryText}" VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="2" Text="{Binding Operations, Converter={StaticResource Join}}" Style="{StaticResource BodyText}"
-                                           VerticalAlignment="Center" TextWrapping="Wrap" TextTrimming="None" />
-                                <TextBlock Grid.Column="3" Text="{Binding Owner.Display}" Style="{StaticResource BodyText}" VerticalAlignment="Center" />
-                                <Border Grid.Column="4" Style="{StaticResource Pill}">
+                                <TextBlock Grid.Column="2" Text="{Binding Kind}" Style="{StaticResource SecondaryText}" VerticalAlignment="Center" />
+                                <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Operations, Converter={StaticResource Join}}" Style="{StaticResource BodyText}" TextWrapping="Wrap" TextTrimming="None" />
+                                    <TextBlock Text="{Binding ContractType}" Style="{StaticResource CaptionText}" TextWrapping="Wrap" TextTrimming="None" />
+                                </StackPanel>
+                                <TextBlock Grid.Column="4" Text="{Binding Owner.Display}" Style="{StaticResource BodyText}" VerticalAlignment="Center" />
+                                <Border Grid.Column="5" Style="{StaticResource Pill}">
                                     <Border.Resources>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="Text" Value="Unavailable" />

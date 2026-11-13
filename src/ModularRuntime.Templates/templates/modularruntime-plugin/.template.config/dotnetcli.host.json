@@ -8,12 +8,15 @@
     "topic": { "longName": "topic", "shortName": "" },
     "serviceId": { "longName": "service-id", "shortName": "" },
     "extensionPoint": { "longName": "extension-point", "shortName": "" },
+    "contractAssembly": { "longName": "contract-assembly", "shortName": "" },
+    "streamId": { "longName": "stream-id", "shortName": "" },
     "sdkVersion": { "longName": "sdk-version", "shortName": "" },
     "skipRestore": { "longName": "no-restore", "shortName": "" }
   },
   "usageExamples": [
     "-n MyFirstPlugin",
     "-n Greeter --kind event-publisher --topic contoso.greetings",
-    "-n Upper --kind service-provider --service-id contoso.text --plugin-id com.contoso.upper"
+    "-n Upper --kind service-provider --service-id contoso.text --plugin-id com.contoso.upper",
+    "-n Telemetry --kind typed-provider --service-id contoso.telemetry --contract-assembly Contoso.Telemetry.Contracts"
   ]
 }

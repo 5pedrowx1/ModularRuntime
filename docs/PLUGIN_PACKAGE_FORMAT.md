@@ -20,7 +20,8 @@ FileWatcher-1.0.0.zip
 
 - **Content files** are everything that is installed. Every content file must be listed in
   `integrity.json` exactly once, with its size and SHA-256. That includes `plugin.json`, every
-  DLL, every dependency, and any data file.
+  DLL (shared contract assemblies declared in `plugin.json` included), every dependency, and any
+  data file.
 - **Metadata files** are exactly `integrity.json` and `integrity.sig` **at the package root**,
   in lowercase. They are not installed as content and are never listed in `integrity.json`:
   `integrity.json` is protected by the signature in `integrity.sig`, and the signature cannot
